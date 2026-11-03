@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Чек-лист оборудования</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="phone-container">
+        <header>
+            <h1 id="main-title" class="title">Смены</h1>
+        </header>
+
+        <div id="progress-container-block" class="progress-section">
+            <div class="progress-text">
+                <span id="progress-count">Собрано: 0 / 0</span>
+                <span id="progress-percent" class="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <div id="main-content-area"></div>
+
+        <nav>
+            <button id="nav-shifts" class="nav-item active" onclick="switchTab('shifts')">📅 <span>Смены</span></button>
+            <button id="nav-inventory" class="nav-item" onclick="switchTab('inventory')">📦 <span>Склад</span></button>
+            <button id="nav-templates" class="nav-item" onclick="switchTab('templates')">📋 <span>Шаблоны</span></button>
+        </nav>
+    </div>
+    <script src="data.js"></script>
+    <script src="render.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
