@@ -1,4 +1,5 @@
-﻿function buildHtml(arr) {
+// Этот файл отвечает только за отрисовку карточек и строк на экране
+function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; const isInv = currentTab === 'inventory';
     Object.keys(categoriesConfig).forEach(k => {
         const inf = categoriesConfig[k], list = arr.filter(x => x.category === k);
@@ -11,19 +12,23 @@
 
         [...new Set(list.map(x => x.subcategory))].forEach(sub => {
             const subL = list.filter(x => x.subcategory === sub); if (!subL.length) return;
-            if (sub !== "none") inner += `<div class="subcategory-title">${sub}</div>`;
+            
+            const subStyle = isRental ? 'style="color:#f59e0b; border-bottom:2px solid #5f3e0e;"' : '';
+            if (sub !== "none") inner += `<div class="subcategory-title" ${subStyle}>${sub}</div>`;
             
             [...new Set(subL.map(x => x.section))].forEach(sec => {
                 const secL = subL.filter(x => x.section === sec); if (!secL.length) return;
                 
-                // ИСПРАВЛЕНО: Перед названием мелкого подпункта 3-го уровня теперь выводится аккуратный маркер-буллит "•"
-                if (sec !== "") inner += `<div class="section-title">• ${sec}</div>`;
+                const secStyle = isRental ? 'style="background-color:#3a2512; color:#f59e0b;"' : '';
+                if (sec !== "") inner += `<div class="section-title" ${secStyle}>• ${sec}</div>`;
                 
                 secL.forEach(i => {
                     const isTpl = currentTab === 'template-detail';
                     let rHtml = `<span class="count-tag">x${i.count > 0 ? i.count : 1}</span><button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
                     
                     let chkClass = i.packed ? 'checked' : 'unchecked';
+                    if (isRental) chkClass = i.packed ? 'checked-rental' : 'unchecked-rental';
+
                     inner += `<div class="item-row" onclick="toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${isTpl ? 'hidden' : chkClass}">${i.packed ? '✓' : ''}</div><div class="item-info" style="${isTpl ? 'padding-left:5px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed ? 'packed-text' : 'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-right-side">${rHtml}</div></div>`;
                 });
             });
@@ -33,10 +38,10 @@
         const headerCounter = isInv ? `${list.filter(x => x.packed).length}/${list.length}` : `${cPk}/${cTot}`;
         const inlineAddBtn = `<button style="background:#27272a; border:none; color:#fff; border-radius:4px; width:22px; height:22px; font-weight:bold; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; justify-content:center;" onclick="event.stopPropagation(); handleCategoryAdd('${k}')">+</button>`;
 
-        // Добавляем класс цветного бокового маркера marker-${k} к основной карточке
         const cardClass = isRental ? 'card card-rental marker-rental' : `card marker-${k}`;
+        const counterClass = isRental ? 'card-counter text-rental' : 'card-counter';
 
-        html += `<div class="${cardClass}"><div class="card-header" onclick="toggleCategoryCollapse('${k}')"><div class="card-title"><span>${inf.icon}</span> ${inf.name}</div><div style="display:flex; align-items:center;"><span class="card-counter">${headerCounter}</span>${inlineAddBtn}<span style="color:#71717a;font-size:10px;margin-left:8px;">${collapsedCats[k]?'▶':'▼'}</span></div></div><div class="item-list ${collapsedCats[k]?'hidden':''}">${inner}</div></div>`;
+        html += `<div class="${cardClass}"><div class="card-header" onclick="toggleCategoryCollapse('${k}')"><div class="card-title"><span>${inf.icon}</span> ${inf.name}</div><div style="display:flex; align-items:center;"><span class="${counterClass}">${headerCounter}</span>${inlineAddBtn}<span style="color:#71717a;font-size:10px;margin-left:8px;">${collapsedCats[k]?'▶':'▼'}</span></div></div><div class="item-list ${collapsedCats[k]?'hidden':''}">${inner}</div></div>`;
     });
     
     if (isInv) html += `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
