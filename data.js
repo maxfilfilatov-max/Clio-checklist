@@ -1,26 +1,3 @@
-// НАСТРОЙКА СВЯЗИ С ОБЛАКОМ: Вставьте сюда свои ключи из консоли Google Firebase!
-const firebaseConfig = {
-
-  apiKey: "AIzaSyAMIU7xHsQ8y7fyzEVT9Ygi3YLrwy-7ZLU",
-
-  authDomain: "clio-checklist-db.firebaseapp.com",
-
-  projectId: "clio-checklist-db",
-
-  storageBucket: "clio-checklist-db.firebasestorage.app",
-
-  messagingSenderId: "991994065530",
-
-  appId: "1:991994065530:web:127676cfb94bbe85aa41c3"
-
-};
-
-
-
-// Инициализируем Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 const categoriesConfig = {
     camera: { name: "Камера", icon: "🎥" },
     sound: { name: "Звук", icon: "🔊" },
@@ -30,18 +7,38 @@ const categoriesConfig = {
     rental: { name: "Арендное оборудование", icon: "🛒" }
 };
 
-// Списки данных теперь будут загружаться из облака. Изначально они пустые.
-let templatesList = [];
-let warehouseItems = [];
-let shiftsList = [];
+// Загружаем созданные пользователем шаблоны или используем базовый
+let templatesList = localStorage.getItem('whTemplates') ? JSON.parse(localStorage.getItem('whTemplates')) : [
+    {
+        id: "tpl_interview",
+        name: "Интервью (2 Камеры + Звук)",
+        desc: "FX3, оптика, рекордер Sound Devices, петлички",
+        items: [
+            { id: 101, name: "Камера FX3", brand: "Sony", count: 2, packed: false, category: "camera", subcategory: "Камера", section: "" },
+            { id: 102, name: "Объектив 24-70mm f2.8", brand: "Sony", count: 1, packed: false, category: "camera", subcategory: "Оптика", section: "" },
+            { id: 103, name: "888 Production Mixer", brand: "Sound Devices", count: 1, packed: false, category: "sound", subcategory: "Рекордеры", section: "" }
+        ]
+    }
+];
+
+// Загружаем Склад (Генеральную базу техники)
+let warehouseItems = localStorage.getItem('whItems') ? JSON.parse(localStorage.getItem('whItems')) : [
+    { id: 1, name: "Sony FX3", brand: "Sony", count: 0, packed: false, category: "camera", subcategory: "Камера", section: "" },
+    { id: 2, name: "24-70mm f2.8 GM II", brand: "Sony", count: 0, packed: false, category: "camera", subcategory: "Оптика", section: "" },
+    { id: 3, name: "888 Production Mixer", brand: "Sound Devices", count: 0, packed: false, category: "sound", subcategory: "Рекордеры", section: "" },
+    { id: 4, name: "Объектив Cooke S4/i 50mm", brand: "Cooke", count: 0, packed: false, category: "rental", subcategory: "Оптика в прокат", section: "" }
+];
+
+// Загружаем активные проекты/смены
+let shiftsList = localStorage.getItem('shiftsList') ? JSON.parse(localStorage.getItem('shiftsList')) : [];
+
+// Запоминаем, какие категории свернуты пользователем
 let collapsedCats = localStorage.getItem('colCats') ? JSON.parse(localStorage.getItem('colCats')) : {};
 
-// Эта функция теперь сохраняет всё напрямую в центральную базу данных Google
+// Функция сохранения всех изменений в память браузера LocalStorage
 function saveAll() {
+    localStorage.setItem('whItems', JSON.stringify(warehouseItems));
+    localStorage.setItem('shiftsList', JSON.stringify(shiftsList));
     localStorage.setItem('colCats', JSON.stringify(collapsedCats));
-    
-    // Перезаписываем документы в облакеFirestore
-    db.collection("app_data").doc("warehouse").set({ items: warehouseItems });
-    db.collection("app_data").doc("shifts").set({ list: shiftsList });
-    db.collection("app_data").doc("templates").set({ list: templatesList });
+    localStorage.setItem('whTemplates', JSON.stringify(templatesList));
 }
