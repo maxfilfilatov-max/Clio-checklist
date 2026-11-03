@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Чек-лист оборудования</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Подключаем библиотеку контурных Apple-style иконок -->
-    <script src="https://unpkg.com"></script>
 </head>
 <body>
     <div class="phone-container">
@@ -26,18 +24,18 @@
 
         <div id="main-content-area"></div>
 
-        <!-- Нижнее неоморфное меню с новыми контурными иконками -->
+        <!-- Нижнее меню на стабильных и надежных эмодзи -->
         <nav>
             <button id="nav-shifts" class="nav-item active" onclick="switchTab('shifts')">
-                <i data-lucide="calendar"></i>
+                <span>📅</span>
                 <span>Смены</span>
             </button>
             <button id="nav-inventory" class="nav-item" onclick="switchTab('inventory')">
-                <i data-lucide="box"></i>
+                <span>📦</span>
                 <span>Склад</span>
             </button>
             <button id="nav-templates" class="nav-item" onclick="switchTab('templates')">
-                <i data-lucide="layers"></i>
+                <span>📋</span>
                 <span>Шаблоны</span>
             </button>
         </nav>
