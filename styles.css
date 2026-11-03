@@ -3,6 +3,7 @@ body {
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
+    /* Учитываем боковые безопасные зоны iPhone при повороте */
     padding: 20px calc(12px + env(safe-area-inset-right)) 20px calc(12px + env(safe-area-inset-left));
     display: flex;
     justify-content: center;
@@ -128,16 +129,15 @@ nav {
     box-sizing: border-box;
 }
 
-/* Настройка стиля для контурных иконок */
-.nav-item svg {
-    width: 22px;
-    height: 22px;
-    color: #8a8a93; 
+/* Крупный размер для надежных системных эмодзи внутри неоморфных плашек */
+.nav-item span:first-child {
+    font-size: 20px;
+    opacity: 0.6;
     transition: all 0.2s ease;
 }
 
 /* Текстовые подписи */
-.nav-item span {
+.nav-item span:last-child {
     font-size: 11px;
 }
 
@@ -151,9 +151,9 @@ nav {
         -2px -2px 5px rgba(255, 255, 255, 0.03);    
 }
 
-/* Подсветка иконки белым на активной вкладке */
-.nav-item.active svg {
-    color: #ffffff; 
+/* Яркая подсветка активного эмодзи */
+.nav-item.active span:first-child {
+    opacity: 1;
     transform: scale(1.05);
 }
 
