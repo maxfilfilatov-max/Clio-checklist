@@ -1,5 +1,5 @@
 body {
-    background-color: #0d0d0e !important; /* Чуть смягчили черный цвет фона для читаемости объёмных теней */
+    background-color: #0d0d0e !important; /* Приглушенный черный для читаемости теней */
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
@@ -7,10 +7,11 @@ body {
     display: flex;
     justify-content: center;
 }
+/* Сделали ширину адаптивной, увеличили максимум для Pro Max, добавили отступ снизу под новое меню */
 .phone-container { 
     width: 100%; 
     max-width: 430px; 
-    padding-bottom: calc(130px + env(safe-area-inset-bottom)); /* Увеличили отступ снизу под новое меню */
+    padding-bottom: calc(130px + env(safe-area-inset-bottom)); 
     box-sizing: border-box;
 }
 header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
@@ -27,6 +28,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .card-title { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px; }
 .card-counter { color: #10b981; font-weight: 600; font-size: 15px; }
 
+/* Динамические левые цветные маркеры для главных категорий */
 .marker-camera::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#2563eb; }
 .marker-sound::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#7c3aed; }
 .marker-support::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#dc2626; }
@@ -60,6 +62,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .shift-arrow { color: #71717a; font-size: 15px; }
 .empty-text { text-align: center; color: #71717a; padding: 40px 20px; font-size: 16px; }
 
+/* ВЫДЕЛЕНИЕ АРЕНДЫ */
 .card-rental { background-color: #241a10 !important; border: 1px solid #d97706; }
 .text-rental { color: #f59e0b !important; }
 .checkbox.checked-rental { border: 2px solid #f59e0b; background-color: #f59e0b; color: #000000 !important; }
@@ -83,7 +86,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 
 
 /* ========================================================================= */
-/* --- НОВОЕ МАТЕРИАЛИСТИЧЕСКОЕ НЕОМОРФНОЕ МЕНЮ (ПО РЕФЕРЕНСУ) --- */
+/* --- МАТЕРИАЛИСТИЧЕСКОЕ НЕОМОРФНОЕ МЕНЮ (ПО РЕФЕРЕНСУ) --- */
 /* ========================================================================= */
 
 nav { 
@@ -93,19 +96,14 @@ nav {
     transform: translateX(-50%); 
     width: 100%; 
     max-width: 430px; 
-    
-    /* Фактурный матовый пластик панели по референсу */
     background-color: #161618; 
     border-top: 1px solid #222225; 
-    
     display: flex; 
     justify-content: space-around; 
     align-items: center;
     padding: 14px 10px calc(14px + env(safe-area-inset-bottom)) 10px; 
     z-index: 999; 
     box-sizing: border-box;
-    
-    /* Плотная тень от корпуса панели вверх */
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6); 
 }
 
@@ -118,14 +116,11 @@ nav {
     background: none; 
     border: none; 
     cursor: pointer; 
-    
-    /* Шрифт по умолчанию аккуратный и тусклый */
     color: #8a8a93; 
-    font-size: 10px; 
-    font-weight: 600; 
+    font-size: 11px; 
+    font-weight: 700; 
     text-transform: uppercase; 
     letter-spacing: 0.6px; 
-    
     gap: 6px;
     padding: 10px 14px;
     border-radius: 14px;
@@ -133,34 +128,33 @@ nav {
     box-sizing: border-box;
 }
 
-/* Иконки-смайлики внутри кнопок */
-.nav-item span:first-child {
-    font-size: 20px;
-    opacity: 0.5; /* Затеняем неактивные иконки по референсу */
+/* Настройка стиля для контурных иконок */
+.nav-item svg {
+    width: 22px;
+    height: 22px;
+    color: #8a8a93; 
     transition: all 0.2s ease;
 }
 
 /* Текстовые подписи */
 .nav-item span {
-    font-size: 10px;
+    font-size: 11px;
 }
 
-/* ЭФФЕКТ ДЛЯ АКТИВНОЙ КНОПКИ (В точности как на скрине) */
+/* ЭФФЕКТ ДЛЯ АКТИВНОЙ КНОПКИ (По вашему референсу) */
 .nav-item.active { 
-    color: #ffffff; /* Белый яркий текст на выделенной кнопке */
-    
-    /* Выдавленная neumorphic-плашка вокруг активной кнопки */
+    color: #ffffff; 
     background: #1e1e21;
     box-shadow: 
-        inset 1px 1px 2px rgba(255, 255, 255, 0.1), /* Мягкий блик сверху внутри */
-        3px 3px 6px rgba(0, 0, 0, 0.5),             /* Четкая тень снаружи справа-снизу */
-        -2px -2px 5px rgba(255, 255, 255, 0.03);    /* Легкий свет снаружи слева-сверху */
+        inset 1px 1px 2px rgba(255, 255, 255, 0.1), 
+        3px 3px 6px rgba(0, 0, 0, 0.5),             
+        -2px -2px 5px rgba(255, 255, 255, 0.03);    
 }
 
-/* Активация иконки на выделенной кнопке */
-.nav-item.active span:first-child {
-    opacity: 1; /* Полная яркость смайлика */
-    transform: scale(1.05); /* Легкое физическое увеличение */
+/* Подсветка иконки белым на активной вкладке */
+.nav-item.active svg {
+    color: #ffffff; 
+    transform: scale(1.05);
 }
 
 /* Мягкий эффект физического продавливания при непосредственном нажатии пальцем (клик) */
