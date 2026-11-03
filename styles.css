@@ -66,12 +66,12 @@ nav {
     border-top: 1px solid #27272a; 
     display: flex; 
     justify-content: space-around; 
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom)) 0; 
+    padding: 12px 0 calc(14px + env(safe-area-inset-bottom)) 0; 
     z-index: 999; 
     box-sizing: border-box;
 }
 
-/* Крупные кнопки, плотный жирный шрифт и принудительный CAPS */
+/* ИСПРАВЛЕНО: Сделали аккуратный, сбалансированный и компактный CAPS-размер */
 .nav-item { 
     display: flex; 
     flex-direction: column; 
@@ -80,25 +80,25 @@ nav {
     border: none; 
     color: #71717a; 
     cursor: pointer; 
-    font-size: 14px; 
+    font-size: 11px; /* Снизили размер шрифта для аккуратности */
     font-weight: 700; 
     text-transform: uppercase; 
-    letter-spacing: 0.5px; 
+    letter-spacing: 0.6px; /* Чуть увеличили расстояние между буквами */
     gap: 6px;
-    padding: 8px 16px;
+    padding: 6px 12px;
     transition: color 0.2s ease;
 }
 .nav-item.active { color: #3b82f6; }
 
-/* Увеличиваем размер эмодзи-символов */
+/* Аккуратный размер эмодзи-символов */
 .nav-item span:first-child, 
 .nav-item {
-    font-size: 22px;
+    font-size: 18px; /* Уменьшили до сбалансированного значения */
 }
 
-/* Корректируем размер текстовой подписи под эмодзи */
+/* Текстовые подписи */
 .nav-item span {
-    font-size: 14px;
+    font-size: 11px;
 }
 .hidden { display: none !important; }
 
