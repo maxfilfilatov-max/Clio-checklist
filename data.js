@@ -7,7 +7,29 @@ const categoriesConfig = {
     rental: { name: "Арендное оборудование", icon: "🛒" }
 };
 
-// --- СЛОЙ 1. АВТОНОМНАЯ СТАБИЛЬНАЯ ПАМЯТЬ ТЕХНИКИ ---
+// =========================================================================
+// !!! ОБЯЗАТЕЛЬНО ЗАПОЛНИТЕ ЭТОТ БЛОК ВАШИМИ ДАННЫМИ ИЗ КОНСОЛИ !!!
+const firebaseConfig = {
+  apiKey: "AIzaSyAMIU7xHsQ8y7fyzEVT9Ygi3YLrwy-7ZLU",
+  authDomain: "clio-checklist-db.firebaseapp.com",
+  databaseURL: "https://clio-checklist-db-default-rtdb.firebaseio.com",
+  projectId: "clio-checklist-db",
+  storageBucket: "clio-checklist-db.firebasestorage.app",
+  messagingSenderId: "991994065530",
+  appId: "1:991994065530:web:127676cfb94bbe85aa41c3"
+};
+    databaseURL: "https://clio-checklist-db-default-rtdb.firebaseio.com/" // Вставьте скопированную ссылку сюда!
+};
+// =========================================================================
+
+// Инициализация базы данных Realtime
+let rtdb = null;
+try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    rtdb = firebase.database();
+} catch (e) { console.error("Ошибка сети Google:", e); }
+
+// Мгновенная локальная загрузка (чтобы экран телефона никогда не был белым)
 let warehouseItems = localStorage.getItem('whItems') ? JSON.parse(localStorage.getItem('whItems')) : [
     { id: 1, name: "Sony FX3", brand: "Sony", count: 0, packed: false, category: "camera", subcategory: "Камера", section: "" },
     { id: 2, name: "24-70mm f2.8 GM II", brand: "Sony", count: 0, packed: false, category: "camera", subcategory: "Оптика", section: "" },
@@ -18,78 +40,33 @@ let shiftsList = localStorage.getItem('shiftsList') ? JSON.parse(localStorage.ge
 let templatesList = localStorage.getItem('whTemplates') ? JSON.parse(localStorage.getItem('whTemplates')) : [];
 let collapsedCats = localStorage.getItem('colCats') ? JSON.parse(localStorage.getItem('colCats')) : {};
 
-// --- СЛОЙ 2. БЕЗОПАСНОЕ ПОДКЛЮЧЕНИЕ К ОБЛАКУ GOOGLE FIREBASE ---
-// Вставьте ваши ключи из вкладки Config ниже. Если они пустые или с ошибкой, 
-// приложение просто проигнорирует их и продолжит работать автономно!
-const firebaseConfig = {
-    apiKey: "ВАШ_API_KEY",
-    authDomain: "ВАШ_://firebaseapp.com",
-    projectId: "ВАШ_PROJECT_ID",
-    storageBucket: "ВАШ_://appspot.com",
-    messagingSenderId: "ВАШ_SENDER_ID",
-    appId: "ВАШ_APP_ID"
-};
-
-let cloudDb = null;
-
-try {
-    // Проверяем, что библиотеки Firebase загрузились и конфиг заполнен пользователем
-    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "ВАШ_API_KEY") {
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        cloudDb = firebase.firestore();
-        
-        // Включаем фоновое скачивание из облака
-        cloudDb.collection("appData").doc("warehouse").onSnapshot((doc) => {
-            if (doc.exists() && doc.data().items) {
-                warehouseItems = doc.data().items;
-                localStorage.setItem('whItems', JSON.stringify(warehouseItems));
-                if (typeof renderAll === "function") renderAll();
-            }
-        }, err => console.log(" Firestore ожидает ручной публикации правил..."));
-
-        cloudDb.collection("appData").doc("shifts").onSnapshot((doc) => {
-            if (doc.exists() && doc.data().list) {
-                shiftsList = doc.data().list;
-                localStorage.setItem('shiftsList', JSON.stringify(shiftsList));
-                if (typeof renderAll === "function") renderAll();
-            }
-        });
-
-        cloudDb.collection("appData").doc("templates").onSnapshot((doc) => {
-            if (doc.exists() && doc.data().list) {
-                templatesList = doc.data().list;
-                localStorage.setItem('whTemplates', JSON.stringify(templatesList));
-                if (typeof renderAll === "function") renderAll();
-            }
-        });
-
-        cloudDb.collection("appData").doc("collapsed").onSnapshot((doc) => {
-            if (doc.exists() && doc.data().cats) {
-                collapsedCats = doc.data().cats;
-                localStorage.setItem('colCats', JSON.stringify(collapsedCats));
-                if (typeof renderAll === "function") renderAll();
-            }
-        });
-    }
-} catch (error) {
-    console.error("Firebase изолирован: работаем в автономном режиме", error);
+// ПОДКЛЮЧЕНИЕ ОБЛАЧНОГО ОБМЕНА ДАННЫМИ
+if (rtdb) {
+    rtdb.ref("warehouse").on("value", (snapshot) => {
+        if (snapshot.exists()) { warehouseItems = snapshot.val(); localStorage.setItem('whItems', JSON.stringify(warehouseItems)); if (typeof renderAll === "function") renderAll(); }
+    });
+    rtdb.ref("shifts").on("value", (snapshot) => {
+        if (snapshot.exists()) { shiftsList = snapshot.val(); localStorage.setItem('shiftsList', JSON.stringify(shiftsList)); if (typeof renderAll === "function") renderAll(); }
+    });
+    rtdb.ref("templates").on("value", (snapshot) => {
+        if (snapshot.exists()) { templatesList = snapshot.val(); localStorage.setItem('whTemplates', JSON.stringify(templatesList)); if (typeof renderAll === "function") renderAll(); }
+    });
+    rtdb.ref("collapsed").on("value", (snapshot) => {
+        if (snapshot.exists()) { collapsedCats = snapshot.val(); localStorage.setItem('colCats', JSON.stringify(collapsedCats)); if (typeof renderAll === "function") renderAll(); }
+    });
 }
 
-// --- ЦЕНТРАЛЬНАЯ ФУНКЦИЯ СОХРАНЕНИЯ ---
+// Функция сохранения: пишет в телефон и мгновенно транслирует в Realtime Database
 function saveAll() {
-    // Сначала пишем данные локально, чтобы телефон мгновенно всё запомнил
     localStorage.setItem('whItems', JSON.stringify(warehouseItems));
     localStorage.setItem('shiftsList', JSON.stringify(shiftsList));
     localStorage.setItem('colCats', JSON.stringify(collapsedCats));
     localStorage.setItem('whTemplates', JSON.stringify(templatesList));
 
-    // Дублируем в облако, только если оно успешно инициализировано
-    if (cloudDb) {
-        cloudDb.collection("appData").doc("warehouse").set({ items: warehouseItems }).catch(e => console.log("Облако занято"));
-        cloudDb.collection("appData").doc("shifts").set({ list: shiftsList }).catch(e => console.log("Облако занято"));
-        cloudDb.collection("appData").doc("collapsed").set({ cats: collapsedCats }).catch(e => console.log("Облако занято"));
-        cloudDb.collection("appData").doc("templates").set({ list: templatesList }).catch(e => console.log("Облако занято"));
+    if (rtdb) {
+        rtdb.ref("warehouse").set(warehouseItems);
+        rtdb.ref("shifts").set(shiftsList);
+        rtdb.ref("collapsed").set(collapsedCats);
+        rtdb.ref("templates").set(templatesList);
     }
 }
