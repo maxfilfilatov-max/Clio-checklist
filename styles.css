@@ -70,7 +70,8 @@ nav {
     z-index: 999; 
     box-sizing: border-box;
 }
-/* Увеличенный размер элементов нижнего меню для удобного нажатия пальцем */
+
+/* Крупные кнопки, плотный жирный шрифт и принудительный CAPS */
 .nav-item { 
     display: flex; 
     flex-direction: column; 
@@ -79,21 +80,25 @@ nav {
     border: none; 
     color: #71717a; 
     cursor: pointer; 
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
     gap: 6px;
     padding: 8px 16px;
     transition: color 0.2s ease;
 }
 .nav-item.active { color: #3b82f6; }
-/* Увеличиваем размер самих цветных смайликов-символов внутри кнопок меню */
+
+/* Увеличиваем размер эмодзи-символов */
 .nav-item span:first-child, 
 .nav-item {
-    font-size: 20px;
+    font-size: 22px;
 }
-/* Фикс, чтобы текст внутри кнопок не наследовал огромный размер эмодзи */
+
+/* Корректируем размер текстовой подписи под эмодзи */
 .nav-item span {
-    font-size: 13px;
+    font-size: 14px;
 }
 .hidden { display: none !important; }
 
