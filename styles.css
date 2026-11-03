@@ -1,89 +1,89 @@
-﻿body {
+body {
     background-color: #000000 !important;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
-    padding: 20px 10px;
+    /* Учитываем боковые безопасные зоны iPhone при повороте */
+    padding: 20px calc(12px + env(safe-area-inset-right)) 20px calc(12px + env(safe-area-inset-left));
     display: flex;
     justify-content: center;
 }
-.phone-container { width: 100%; max-width: 375px; padding-bottom: 80px; }
+/* Сделали ширину адаптивной, увеличили максимум для Pro Max, добавили отступ снизу под новое меню */
+.phone-container { 
+    width: 100%; 
+    max-width: 430px; 
+    padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
+    box-sizing: border-box;
+}
 header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-.title { font-size: 18px; font-weight: 600; margin: 0; }
-.add-btn { width: 30px; height: 30px; background-color: #27272a; border: none; border-radius: 50%; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.title { font-size: 20px; font-weight: 600; margin: 0; }
+.add-btn { width: 32px; height: 32px; background-color: #27272a; border: none; border-radius: 50%; color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 .progress-section { margin: 20px 0; }
-.progress-text { display: flex; justify-content: space-between; font-size: 14px; color: #a1a1aa; margin-bottom: 8px; }
+.progress-text { display: flex; justify-content: space-between; font-size: 15px; color: #a1a1aa; margin-bottom: 8px; }
 .progress-percent { color: #10b981; font-weight: bold; }
-.progress-bar-bg { width: 100%; background-color: #27272a; height: 8px; border-radius: 4px; overflow: hidden; }
+.progress-bar-bg { width: 100%; background-color: #27272a; height: 10px; border-radius: 5px; overflow: hidden; }
 .progress-bar-fill { width: 0%; background-color: #10b981; height: 100%; transition: width 0.3s ease; }
 
-/* Блок карточки с левым отступом под цветной маркер */
 .card { background-color: #1c1c1e; border-radius: 16px; overflow: hidden; margin-top: 16px; position: relative; border: 1px solid transparent; }
-.card-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 15px 15px 20px; border-bottom: 1px solid #27272a; cursor: pointer; }
-.card-title { font-weight: 600; font-size: 17px; display: flex; align-items: center; gap: 10px; }
-.card-counter { color: #10b981; font-weight: 600; font-size: 14px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 16px 22px; border-bottom: 1px solid #27272a; cursor: pointer; }
+.card-title { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.card-counter { color: #10b981; font-weight: 600; font-size: 15px; }
 
 /* Динамические левые цветные маркеры для главных категорий */
 .marker-camera::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#2563eb; }
 .marker-sound::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#7c3aed; }
 .marker-support::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#dc2626; }
-.marker-light::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#facc15; } /* Сделали маркер Света ярко-жёлтым */
+.marker-light::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#facc15; }
 .marker-grip::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#16a34a; }
 .marker-rental::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#d97706; }
 
-.item-list { padding: 5px 15px; }
-.item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #27272a; cursor: pointer; }
+.item-list { padding: 5px 16px; }
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #27272a; cursor: pointer; }
 .item-row:last-child { border-bottom: none; }
-.item-left { display: flex; align-items: center; gap: 12px; }
-.checkbox { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; transition: all 0.2s ease; }
+.item-left { display: flex; align-items: center; gap: 14px; }
+.checkbox { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; transition: all 0.2s ease; box-sizing: border-box; }
 .checkbox.unchecked { border: 2px solid #52525b; background-color: transparent; }
 .checkbox.checked { border: 2px solid #10b981; background-color: #10b981; color: #000; }
 .item-info { display: flex; flex-direction: column; }
-.item-name { font-size: 15px; font-weight: 500; margin: 0; transition: all 0.2s ease; }
+.item-name { font-size: 16px; font-weight: 500; margin: 0; transition: all 0.2s ease; }
 .active-item { text-decoration: none; color: #ffffff; }
 .packed-text { text-decoration: line-through; color: #71717a; }
-.item-brand { font-size: 12px; color: #71717a; margin: 2px 0 0 0; }
-.item-right-side { display: flex; align-items: center; gap: 10px; }
-.count-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #71717a; font-size: 14px; }
-.subtle-delete { color: #444; font-size: 12px; background: none; border: none; cursor: pointer; padding: 4px; }
+.item-brand { font-size: 13px; color: #71717a; margin: 2px 0 0 0; }
+.item-right-side { display: flex; align-items: center; gap: 12px; }
+.count-tag { font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #71717a; font-size: 15px; }
+.subtle-delete { color: #444; font-size: 14px; background: none; border: none; cursor: pointer; padding: 6px; }
 .subtle-delete:hover { color: #ef4444; }
-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 375px; background-color: #1c1c1e; border-top: 1px solid #27272a; display: flex; justify-content: space-around; padding: 12px 0; font-size: 11px; color: #71717a; }
-.nav-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #71717a; cursor: pointer; font-size: 11px; }
+
+/* ФИКС ДЛЯ МЕНЮ: Используем fixed, растягиваем по ширине контейнера и добавляем отступ safe-area снизу */
+nav { 
+    position: fixed; 
+    bottom: 0; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    width: 100%; 
+    max-width: 430px; 
+    background-color: #1c1c1e; 
+    border-top: 1px solid #27272a; 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom)) 0; 
+    z-index: 999; 
+    box-sizing: border-box;
+}
+/* Сделали иконки в меню чуть крупнее и добавили отступы для удобного нажатия */
+.nav-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #71717a; cursor: pointer; font-size: 12px; gap: 4px; padding: 4px 10px; }
 .nav-item.active { color: #3b82f6; }
 .hidden { display: none !important; }
 
-/* Стильные сдержанные плашки для Подкатегорий (2 уровень) */
-.subcategory-title { 
-    font-size: 12px; 
-    font-weight: 700; 
-    color: #e4e4e7; 
-    text-transform: uppercase; 
-    letter-spacing: 0.8px; 
-    padding: 6px 10px; 
-    background-color: #27272a; 
-    border-radius: 6px;
-    margin: 12px 0 6px 0;
-}
-
-/* Строгий стиль для мелкоуровневых Разделов (3 уровень) */
-.section-title { 
-    font-size: 11px; 
-    font-weight: 600; 
-    color: #a1a1aa; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
-    padding: 6px 0 4px 4px; 
-    margin-top: 4px; 
-}
-
-.shift-card { background-color: #1c1c1e; border-radius: 14px; padding: 16px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.subcategory-title { font-size: 12px; font-weight: 700; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 10px; background-color: #27272a; border-radius: 6px; margin: 14px 0 8px 0; }
+.section-title { font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px 4px; margin-top: 4px; }
+.shift-card { background-color: #1c1c1e; border-radius: 14px; padding: 18px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .shift-info { display: flex; flex-direction: column; gap: 4px; }
-.shift-name { font-size: 16px; font-weight: 600; color: #ffffff; }
-.shift-meta { font-size: 12px; color: #a1a1aa; }
-.shift-arrow { color: #71717a; font-size: 14px; }
-.empty-text { text-align: center; color: #71717a; padding: 30px; font-size: 15px; }
+.shift-name { font-size: 17px; font-weight: 600; color: #ffffff; }
+.shift-meta { font-size: 13px; color: #a1a1aa; }
+.shift-arrow { color: #71717a; font-size: 15px; }
+.empty-text { text-align: center; color: #71717a; padding: 40px 20px; font-size: 16px; }
 
-/* ВЫДЕЛЕНИЕ АРЕНДЫ: вернули глубокий оранжевый фон и контрастную контурную рамку */
 .card-rental { background-color: #241a10 !important; border: 1px solid #d97706; }
 .text-rental { color: #f59e0b !important; }
 .checkbox.checked-rental { border: 2px solid #f59e0b; background-color: #f59e0b; color: #000000 !important; }
@@ -91,15 +91,16 @@ nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width:
 
 .big-green-btn {
     width: 100%; 
-    margin-top: 20px; 
-    padding: 14px; 
+    margin-top: 24px; 
+    padding: 16px; 
     background-color: #16a34a; 
     color: #fff; 
     font-weight: 600; 
     border: none; 
-    border-radius: 12px; 
+    border-radius: 14px; 
     cursor: pointer; 
-    font-size: 15px;
+    font-size: 16px;
     transition: background-color 0.2s ease;
+    box-sizing: border-box;
 }
 .big-green-btn:hover { background-color: #15803d; }
