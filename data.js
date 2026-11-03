@@ -10,12 +10,12 @@ const categoriesConfig = {
 // =========================================================================
 // !!! ЗАМЕНИТЕ ЭТОТ БЛОК НА ВАШИ КЛЮЧИ ИЗ КОНСОЛИ GOOGLE !!!
 const firebaseConfig = {
-    apiKey: "ВАШ_API_KEY",
-    authDomain: "ВАШ_://firebaseapp.com",
-    projectId: "ВАШ_PROJECT_ID",
-    storageBucket: "ВАШ_://appspot.com",
-    messagingSenderId: "ВАШ_SENDER_ID",
-    appId: "ВАШ_APP_ID"
+  apiKey: "AIzaSyAMIU7xHsQ8y7fyzEVT9Ygi3YLrwy-7ZLU",
+  authDomain: "clio-checklist-db.firebaseapp.com",
+  projectId: "clio-checklist-db",
+  storageBucket: "clio-checklist-db.firebasestorage.app",
+  messagingSenderId: "991994065530",
+  appId: "1:991994065530:web:127676cfb94bbe85aa41c3"
 };
 // =========================================================================
 
