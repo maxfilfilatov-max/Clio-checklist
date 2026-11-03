@@ -17,11 +17,11 @@ function handleCategoryAdd(categoryKey) {
 
     const name = prompt("Название прибора:"); if (!name || !name.trim()) return;
     const b = prompt("Бренд:") || "Без бренда", c = (currentTab === 'inventory') ? 0 : (parseInt(prompt("Количество (штук):", "1")) || 1);
-    const sub = prompt("Введите НАЗВАНИЕ ПОДКАТЕГОРИИ:", "Разное");
-    const sec = prompt("Введите НАЗВАНИЕ РАЗДЕЛА (опционально):");
+    const sub = prompt("Введите НАЗВАНИЕ ПОДКАТЕГОРИИ (например: Оптика, Микрофоны, Обвес):", "Разное");
+    const sec = prompt("Введите НАЗВАНИЕ РАЗДЕЛА (если нужен мелкий подпункт, например: Коммутация). Или оставьте пустым:");
 
     arr.push({ id: Date.now(), name: name.trim(), brand: b, count: c, packed: false, category: categoryKey, subcategory: sub ? sub.trim() : "Разное", section: sec ? sec.trim() : "" });
-    saveAll();
+    saveAll(); renderAll();
 }
 
 function createShiftFromTemplate(tplId) {
@@ -35,32 +35,32 @@ function saveShiftAsTemplate(shiftId, event) {
     event.stopPropagation(); const shift = shiftsList.find(s => s.id === shiftId); if (!shift) return;
     const tplName = prompt("Введите название для нового шаблона:", `Шаблон: ${shift.name}`); if (!tplName || !tplName.trim()) return;
     templatesList.push({ id: 'tpl_' + Date.now(), name: tplName.trim(), desc: prompt("Введите описание шаблона:") || "Создан из смены", items: shift.items.map(i => ({ ...i, id: Date.now() + Math.random(), packed: false })) });
-    saveAll(); alert(`Сохранено как шаблон!`); switchTab('templates');
+    localStorage.setItem('whTemplates', JSON.stringify(templatesList)); saveAll(); alert(`Сохранено как шаблон!`); switchTab('templates');
 }
 
 function createTemplateFromWarehouse() {
     const chosen = warehouseItems.filter(i => i.packed);
-    if (chosen.length === 0) { alert("На Складе ничего не выбрано!"); return; }
+    if (chosen.length === 0) { alert("На Складе ничего не выбрано! Сначала зайдите во вкладку «Склад», отметьте галочками нужные приборы, а затем нажмите эту кнопку, чтобы объединить их в шаблон."); return; }
     const tplName = prompt("Введите название для нового шаблона:"); if (!tplName || !tplName.trim()) return;
     templatesList.push({ id: 'tpl_' + Date.now(), name: tplName.trim(), desc: prompt("Введите описание шаблона:"), items: chosen.map(i => ({ ...i, id: Date.now() + Math.random(), packed: false, count: i.count > 0 ? i.count : 1 })) });
-    warehouseItems.forEach(i => i.packed = false); saveAll(); alert(`Шаблон создан!`); switchTab('templates');
+    warehouseItems.forEach(i => i.packed = false); localStorage.setItem('whTemplates', JSON.stringify(templatesList)); saveAll(); alert(`Шаблон создан!`); renderAll();
 }
 
 function toggleItemPacked(id) {
     if (currentTab === 'template-detail') return; 
     const arr = (currentTab === 'inventory') ? warehouseItems : shiftsList.find(s => s.id === activeShiftId)?.items;
     if (arr) { const i = arr.find(x => x.id === id); if (i) i.packed = !i.packed; }
-    saveAll();
+    saveAll(); renderAll();
 }
 
 function deleteGlobalItem(id, e) {
     e.stopPropagation(); if (!confirm("Удалить?")) return;
     if (currentTab === 'inventory') warehouseItems = warehouseItems.filter(x => x.id !== id);
     if (currentTab === 'shifts') shiftsList = shiftsList.filter(x => x.id !== id);
-    if (currentTab === 'templates') templatesList = templatesList.filter(x => x.id !== id);
+    if (currentTab === 'templates') { templatesList = templatesList.filter(x => x.id !== id); localStorage.setItem('whTemplates', JSON.stringify(templatesList)); }
     if (currentTab === 'shift-detail') { const s = shiftsList.find(x => x.id === activeShiftId); if (s) s.items = s.items.filter(x => x.id !== id); }
-    if (currentTab === 'template-detail') { const t = templatesList.find(x => x.id === activeTemplateId); if (t) t.items = t.items.filter(x => x.id !== id); }
-    saveAll();
+    if (currentTab === 'template-detail') { const t = templatesList.find(x => x.id === activeTemplateId); if (t) t.items = t.items.filter(x => x.id !== id); localStorage.setItem('whTemplates', JSON.stringify(templatesList)); }
+    saveAll(); renderAll();
 }
 
 function renderAll() {
@@ -68,7 +68,7 @@ function renderAll() {
     p.classList.add("hidden");
     if (currentTab === 'shifts') {
         t.innerText = "Смены"; 
-        if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу.</div>`; return; }
+        if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`; return; }
         c.innerHTML = shiftsList.map(s => `<div class="shift-card" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll()"><div class="shift-info"><span class="shift-name">${s.name}</span><span class="shift-meta">📅 ${s.date} &nbsp;•&nbsp; Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span></div><div class="item-right-side" style="display: flex; align-items: center; gap: 14px;"><span class="shift-arrow">▶</span><button class="subtle-delete" style="color: #3b82f6; font-size: 14px; padding: 0;" onclick="saveShiftAsTemplate(${s.id}, event)">📋</button><button class="subtle-delete" style="padding: 0;" onclick="deleteGlobalItem(${s.id},event)">✕</button></div></div>`).join('');
     } else if (currentTab === 'inventory') {
         t.innerText = "Каталог Склада"; c.innerHTML = buildHtml(warehouseItems);
@@ -85,13 +85,4 @@ function renderAll() {
         t.innerText = `Пресет: ${tpl.name}`; c.innerHTML = `<button class="back-btn" onclick="switchTab('templates')" style="margin-bottom:10px;">❮ К шаблонам</button>` + buildHtml(tpl.items || []);
     }
 }
-
-// СВЕРХМОЩНЫЙ РЕЖИМ СИНХРОНИЗАЦИИ: Слушаем облако Google 24/7
-db.collection("app_data").onSnapshot((snapshot) => {
-    snapshot.forEach((doc) => {
-        if (doc.id === "warehouse") warehouseItems = doc.data().items || [];
-        if (doc.id === "shifts") shiftsList = doc.data().list || [];
-        if (doc.id === "templates") templatesList = doc.data().list || [];
-    });
-    renderAll(); // Сами перерисовываем экран в реальном времени при любом сигнале из облака!
-});
+renderAll();
