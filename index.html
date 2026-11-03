@@ -1,7 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <!-- Эта строчка заставит телефон адаптировать размер приложения под экран -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Чек-лист оборудования</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -22,6 +24,8 @@
         </div>
 
         <div id="main-content-area"></div>
+
+        <div id="fixed-action-btn-area"></div>
 
         <nav>
             <button id="nav-shifts" class="nav-item active" onclick="switchTab('shifts')">📅 <span>Смены</span></button>
