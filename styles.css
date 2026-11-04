@@ -60,20 +60,20 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     overflow: hidden;
     border-radius: 14px;
     margin-top: 12px;
-    background-color: #ef4444; /* Красный фон, который откроется под карточкой */
+    background-color: #ef4444;
 }
 .shift-card { 
     background-color: #1c1c1e; 
     padding: 18px; 
-    margin-top: 0 !important; /* Обнуляем маргин, так как его забрал контейнер */
+    margin-top: 0 !important;
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     cursor: pointer; 
     position: relative;
     z-index: 2;
-    transition: transform 0.2s ease-out; /* Плавный возврат или открытие свайпа */
-    touch-action: pan-y; /* Позволяет листать экран вертикально без затыков */
+    transition: transform 0.2s ease-out;
+    touch-action: pan-y;
 }
 .swipe-delete-btn {
     position: absolute;
@@ -85,9 +85,9 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     color: #ffffff;
     border: none;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     cursor: pointer;
     z-index: 1;
     display: flex;
