@@ -39,7 +39,6 @@ function createTemplateFromWarehouse() {
     warehouseItems.forEach(i => i.packed = false); saveAll(); renderAll();
 }
 
-// ФУНКЦИЯ КЛИКА: Четко разделена по вкладкам
 function toggleItemPacked(id) {
     if (currentTab === 'template-detail') return;
     const arr = (currentTab === 'inventory') ? warehouseItems : shiftsList.find(s => s.id === activeShiftId)?.items;
@@ -57,42 +56,6 @@ function deleteGlobalItem(id, e) {
     saveAll(); renderAll();
 }
 
-let touchStartX = 0, touchCurrentX = 0, activeSwipedCard = null;
-
-// ИСПРАВЛЕНО: Свайп работает СТРОГО на карточках смен и не лезет в списки оборудования
-function initSwipeEvents() {
-    if (currentTab !== 'shifts') return; // Полная блокировка свайпов на других экранах
-    
-    document.querySelectorAll('.shift-card').forEach(card => {
-        card.addEventListener('touchstart', e => {
-            if (activeSwipedCard && activeSwipedCard !== card) {
-                activeSwipedCard.style.transform = 'translateX(0px)';
-                activeSwipedCard = null;
-            }
-            touchStartX = e.touches.clientX;
-        }, { passive: true });
-
-        card.addEventListener('touchmove', e => {
-            touchCurrentX = e.touches.clientX;
-            let diffX = touchCurrentX - touchStartX;
-            if (diffX < 0 && diffX > -100) {
-                card.style.transform = `translateX(${diffX}px)`;
-            }
-        }, { passive: true });
-
-        card.addEventListener('touchend', e => {
-            let diffX = touchCurrentX - touchStartX;
-            if (diffX < -45) {
-                card.style.transform = 'translateX(-80px)';
-                activeSwipedCard = card;
-            } else {
-                card.style.transform = 'translateX(0px)';
-                if (activeSwipedCard === card) activeSwipedCard = null;
-            }
-        });
-    });
-}
-
 function renderAll() {
     const t = document.getElementById("main-title"), p = document.getElementById("progress-container-block"), c = document.getElementById("main-content-area");
     p.classList.add("hidden");
@@ -100,10 +63,10 @@ function renderAll() {
         t.innerText = "Смены"; 
         if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`; return; }
         
+        // Рендерим нативные свайп-обертки
         c.innerHTML = shiftsList.map(s => `
-            <div class="shift-swipe-container">
-                <div class="swipe-delete-btn" onclick="if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id}, event)}">Удалить</div>
-                <div class="shift-card" onclick="if(this.style.transform==='translateX(-80px)'){this.style.transform='translateX(0px)';}else{currentTab='shift-detail';activeShiftId=${s.id};renderAll();}">
+            <div class="shift-swipe-wrapper">
+                <div class="shift-card" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
                     <div class="shift-info">
                         <span class="shift-name">${s.name}</span>
                         <span class="shift-meta">📅 ${s.date} &nbsp;•&nbsp; Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span>
@@ -113,10 +76,10 @@ function renderAll() {
                         <span class="shift-arrow">▶</span>
                     </div>
                 </div>
+                <div class="swipe-delete-btn" onclick="if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id}, event)}">Удалить</div>
             </div>
         `).join('');
         
-        initSwipeEvents();
     } else if (currentTab === 'inventory') {
         t.innerText = "Каталог Склада"; c.innerHTML = buildHtml(warehouseItems) + `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
     } else if (currentTab === 'templates') {
