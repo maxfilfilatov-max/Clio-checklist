@@ -1,7 +1,7 @@
 function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; 
-    const isInv = currentTab === 'inventory';
-    const isTplDetail = currentTab === 'template-detail' || (document.getElementById("main-title") && document.getElementById("main-title").innerText.includes("Пресет"));
+    const isInv = (currentTab === 'inventory');
+    const isTplDetail = (currentTab === 'template-detail');
 
     Object.keys(categoriesConfig).forEach(k => {
         const inf = categoriesConfig[k], list = arr.filter(x => x.category === k);
@@ -35,13 +35,13 @@ function buildHtml(arr) {
         
         const headerCounter = isInv ? `${list.filter(x => x.packed).length}/${list.length}` : `${cPk}/${cTot}`;
         
-        // СТРОГОЕ УСЛОВИЕ: кнопка "+" создается только если мы находимся во вкладке Склада (isInv)
+        // КНОПКА ПЛЮС: появится ТОЛЬКО на вкладке Склада
         const inlineAddBtn = isInv ? `<button style="background:#27272a; border:none; color:#fff; border-radius:4px; width:22px; height:22px; font-weight:bold; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; justify-content:center;" onclick="event.stopPropagation(); handleCategoryAdd('${k}')">+</button>` : "";
         
         const cardClass = isRental ? 'card card-rental marker-rental' : `card marker-${k}`;
         const counterClass = isRental ? 'card-counter text-rental' : 'card-counter';
 
-        // Формируем блок шапки: в Шаблонах скрываем всё, а в Сменах показываем только счетчик сбора (без плюса)
+        // НАСТРОЙКА ШАПОК: в шаблоне скрываем счетчик, в смене - оставляем только счетчик
         let headerRightHtml = `<span class="${counterClass}">${headerCounter}</span>${inlineAddBtn}`;
         if (isTplDetail) {
             headerRightHtml = ""; 
