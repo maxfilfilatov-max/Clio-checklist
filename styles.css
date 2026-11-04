@@ -54,19 +54,18 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .subcategory-title { font-size: 12px; font-weight: 700; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 10px; background-color: #27272a; border-radius: 6px; margin: 14px 0 8px 0; }
 .section-title { font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px 4px; margin-top: 4px; }
 
-/* НАТИВНЫЙ CSS СВАЙП iOS ДЛЯ КАРТОЧЕК */
 .shift-swipe-wrapper {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    scrollbar-width: none; /* Скрываем полосу прокрутки в Firefox */
+    scrollbar-width: none;
     border-radius: 14px;
     margin-top: 12px;
     touch-action: pan-y;
 }
 .shift-swipe-wrapper::-webkit-scrollbar {
-    display: none; /* Скрываем полосу прокрутки в Safari и Chrome */
+    display: none;
 }
 .shift-card { 
     flex: 0 0 100%;
