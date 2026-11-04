@@ -2,7 +2,8 @@ function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; const isInv = currentTab === 'inventory';
     Object.keys(categoriesConfig).forEach(k => {
         const inf = categoriesConfig[k], list = arr.filter(x => x.category === k);
-        if (!isInv && list.length === 0 && currentTab !== 'template-detail') return;
+        // ИСПРАВЛЕНО: Если мы смотрим детали пресета/смены, пустые категории с нулевым количеством скрываются
+        if (!isInv && list.length === 0) return;
 
         let cPk = 0, cTot = 0, inner = "";
         list.forEach(i => { cTot += i.count; tot += i.count; if (i.packed) { cPk += i.count; pk += i.count; } });
@@ -51,7 +52,6 @@ function checkoutToShiftFlex() {
     warehouseItems.forEach(i => i.packed = false); saveAll(); switchTab('shifts');
 }
 
-// НОВЫЙ ДВИЖОК: Отрисовывает аккуратные двухэтажные карточки Шаблонов
 function buildTemplatesHtml() {
     let htmlList = templatesList.map(tpl => `
         <div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='template-detail';activeTemplateId='${tpl.id}';renderAll()">
@@ -65,7 +65,8 @@ function buildTemplatesHtml() {
                     <span style="font-size:12px;color:#3b82f6;font-weight:500;">📦 Позиций: ${tpl.items ? tpl.items.length : 0}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <button class="add-btn" style="width:auto;height:auto;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background-color:#16a34a;border:1px solid #15803d;color:#fff;" onclick="event.stopPropagation();createShiftFromTemplate('${tpl.id}')">В работу</button>
+                    <!-- ИСПРАВЛЕНО: Кнопка теперь называется СОЗДАТЬ СМЕНУ -->
+                    <button class="add-btn" style="width:auto;height:auto;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background-color:#16a34a;border:1px solid #15803d;color:#fff;" onclick="event.stopPropagation();createShiftFromTemplate('${tpl.id}')">Создать смену</button>
                     <button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить шаблон?')){deleteGlobalItem('${tpl.id}',event)}">Удалить</button>
                 </div>
             </div>
