@@ -9,7 +9,7 @@ function handleCategoryAdd(categoryKey){
 }
 function createShiftFromTemplate(tplId){
     const tpl=templatesList.find(t=>t.id===tplId);if(!tpl)return;const name=prompt(`Создать смену на основе "${tpl.name}". Название:`);if(!name||!name.trim())return;
-    shiftsList.push({id:Date.now(),name:name.trim(),date:prompt("Дата смены:",new Date().toLocaleDateString('ru-RU'))||"",items:tpl.items.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.count>0?i.count:1}))});saveAll();switchTab('shifts');
+    shiftsList.push({id:Date.now(),name:name.trim(),date:prompt("Дата смены:",new Date().toLocaleDateString('ru-RU'))||"",items:tpl.items.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.count > 0?i.count:1}))});saveAll();switchTab('shifts');
 }
 function saveShiftAsTemplate(shiftId,event){
     event.stopPropagation();const shift=shiftsList.find(s=>s.id===shiftId);if(!shift)return;const tplName=prompt("Введите название для нового шаблона:",`Шаблон: ${shift.name}`);if(!tplName||!tplName.trim())return;
@@ -29,16 +29,28 @@ function deleteGlobalItem(id,e){
     if(currentTab==='shift-detail'){const s=shiftsList.find(x=>x.id===activeShiftId);if(s)s.items=s.items.filter(x=>x.id!==id);}if(currentTab==='template-detail'){const t=templatesList.find(x=>x.id===activeTemplateId);if(t)t.items=t.items.filter(x=>x.id!==id);}saveAll();renderAll();
 }
 function renderAll(){
-    const t=document.getElementById("main-title"),p=document.getElementById("progress-container-block"),c=document.getElementById("main-content-area");p.classList.add("hidden");
+    const t=document.getElementById("main-title"),p=document.getElementById("progress-container-block"), c=document.getElementById("main-content-area");p.classList.add("hidden");
     if(currentTab==='shifts'){
         t.innerText="Смены";if(!shiftsList.length){c.innerHTML=`<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`;return;}
         c.innerHTML=shiftsList.map(s=>`
-            <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:stretch;overflow:hidden;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
-                <div style="padding:18px;flex:1;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
-                    <div class="shift-info"><span class="shift-name">${s.name}</span><span class="shift-meta">📅 ${s.date} &nbsp;•&nbsp; Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span></div>
-                    <div style="display:flex;align-items:center;gap:14px;"><button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:4px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button><span class="shift-arrow">▶</span></div>
+            <div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
+                <!-- Верхний этаж: Название смены во весь экран -->
+                <div style="font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                    <span>${s.name}</span><span style="color:#71717a;font-size:14px;">▶</span>
                 </div>
-                <button style="width:75px;background-color:#2a1414;border:none;border-left:1px solid #3d1b1b;color:#ef4444;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id},event)}">🗑️ Удалить</button>
+                <!-- Разделительная линия между этажами -->
+                <div style="height:1px;background-color:#27272a;margin-bottom:10px;width:100%;"></div>
+                <!-- Нижний этаж: Сервисные данные и изолированные кнопки -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div style="display:flex;flex-direction:column;gap:2px;">
+                        <span style="font-size:13px;color:#a1a1aa;">📅 ${s.date}</span>
+                        <span style="font-size:12px;color:#10b981;font-weight:500;">Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:6px;background:#27272a;border-radius:6px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button>
+                        <button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id},event)}">🗑️ Удалить</button>
+                    </div>
+                </div>
             </div>
         `).join('');
     }else if(currentTab==='inventory'){
