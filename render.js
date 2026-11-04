@@ -1,7 +1,6 @@
 function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; 
     const isInv = currentTab === 'inventory';
-    // ХИТРЫЙ ИСПРАВЛЕННЫЙ ТРЮК: если мы в шаблонах, у нас на кнопке возврата написано "К шаблонам"
     const isTplDetail = currentTab === 'template-detail' || (document.getElementById("main-title") && document.getElementById("main-title").innerText.includes("Пресет"));
 
     Object.keys(categoriesConfig).forEach(k => {
@@ -35,12 +34,14 @@ function buildHtml(arr) {
         if (isInv && !list.length) inner = `<div style="padding:15px;color:#71717a;text-align:center;">Пусто</div>`;
         
         const headerCounter = isInv ? `${list.filter(x => x.packed).length}/${list.length}` : `${cPk}/${cTot}`;
-        const inlineAddBtn = `<button style="background:#27272a; border:none; color:#fff; border-radius:4px; width:22px; height:22px; font-weight:bold; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; justify-content:center;" onclick="event.stopPropagation(); handleCategoryAdd('${k}')">+</button>`;
+        
+        // СТРОГОЕ УСЛОВИЕ: кнопка "+" создается только если мы находимся во вкладке Склада (isInv)
+        const inlineAddBtn = isInv ? `<button style="background:#27272a; border:none; color:#fff; border-radius:4px; width:22px; height:22px; font-weight:bold; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; justify-content:center;" onclick="event.stopPropagation(); handleCategoryAdd('${k}')">+</button>` : "";
         
         const cardClass = isRental ? 'card card-rental marker-rental' : `card marker-${k}`;
         const counterClass = isRental ? 'card-counter text-rental' : 'card-counter';
 
-        // ИСПРАВЛЕНО НА КРИТИЧЕСКОМ УРОВНЕ: Формируем правый блок шапки. В деталях пресета тут ГАРАНТИРОВАННО будет пусто.
+        // Формируем блок шапки: в Шаблонах скрываем всё, а в Сменах показываем только счетчик сбора (без плюса)
         let headerRightHtml = `<span class="${counterClass}">${headerCounter}</span>${inlineAddBtn}`;
         if (isTplDetail) {
             headerRightHtml = ""; 
