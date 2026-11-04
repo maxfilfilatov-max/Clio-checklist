@@ -63,19 +63,21 @@ function renderAll() {
         t.innerText = "Смены"; 
         if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`; return; }
         
+        // Надежная, чистая разметка карточек с изолированной кнопкой удаления
         c.innerHTML = shiftsList.map(s => `
-            <div class="shift-swipe-wrapper">
-                <div class="shift-card" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
+            <div class="card" style="margin-top: 12px; cursor: pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
+                <div style="padding: 18px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
                     <div class="shift-info">
                         <span class="shift-name">${s.name}</span>
                         <span class="shift-meta">📅 ${s.date} &nbsp;•&nbsp; Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span>
                     </div>
-                    <div class="item-right-side" style="display: flex; align-items: center; gap: 14px;">
-                        <button class="subtle-delete" style="color: #3b82f6; font-size: 16px; padding: 0;" onclick="saveShiftAsTemplate(${s.id}, event)">📋</button>
+                    <div class="item-right-side" style="display: flex; align-items: center; gap: 16px;">
+                        <button class="subtle-delete" style="color: #3b82f6; font-size: 16px; padding: 4px;" onclick="saveShiftAsTemplate(${s.id}, event)">📋</button>
+                        <!-- Безошибочная текстовая кнопка удаления в iOS/Android стиле -->
+                        <button style="background: none; border: none; color: #ef4444; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px; cursor: pointer;" onclick="event.stopPropagation(); if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id}, event)}">Удалить</button>
                         <span class="shift-arrow">▶</span>
                     </div>
                 </div>
-                <div class="swipe-delete-btn" onclick="event.stopPropagation(); if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id}, event)}">Удалить</div>
             </div>
         `).join('');
         
@@ -83,15 +85,15 @@ function renderAll() {
         t.innerText = "Каталог Склада"; c.innerHTML = buildHtml(warehouseItems) + `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
     } else if (currentTab === 'templates') {
         t.innerText = "Шаблоны"; 
-        let htmlList = templatesList.map(tpl => `<div class="shift-card" style="flex-direction:column; align-items:flex-start; gap:10px;" onclick="currentTab='template-detail';activeTemplateId='${tpl.id}';renderAll()"><div class="shift-info" style="width:100%; display:flex; justify-content:between; flex-direction:row;"><div style="display:flex; flex-direction:column; gap:4px; flex:1;"><span class="shift-name">${tpl.name}</span><span class="shift-meta">${tpl.desc}</span><span class="shift-meta" style="color:#3b82f6;">📦 Позиций: ${tpl.items ? tpl.items.length : 0}</span></div><button class="subtle-delete" onclick="event.stopPropagation(); if(confirm('Удалить шаблон?')){deleteGlobalItem('${tpl.id}',event)}">✕</button></div><button class="add-btn" style="width:auto; height:auto; border-radius:8px; padding:6px 12px; font-size:12px; background-color:#3b82f6;" onclick="event.stopPropagation(); createShiftFromTemplate('${tpl.id}')">Использовать для смены</button></div>`).join('');
+        let htmlList = templatesList.map(tpl => `<div class="card" style="margin-top: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;" onclick="currentTab='template-detail';activeTemplateId='${tpl.id}';renderAll()"><div class="shift-info" style="width: 100%; display: flex; justify-content: space-between; flex-direction: row;"><div style="display: flex; flex-direction: column; gap: 4px; flex: 1;"><span class="shift-name">${tpl.name}</span><span class="shift-meta">${tpl.desc}</span><span class="shift-meta" style="color: #3b82f6;">📦 Позиций: ${tpl.items ? tpl.items.length : 0}</span></div><button class="subtle-delete" style="font-size: 16px; padding: 4px;" onclick="event.stopPropagation(); if(confirm('Удалить шаблон?')){deleteGlobalItem('${tpl.id}', event)}">✕</button></div><button class="add-btn" style="width: auto; height: auto; border-radius: 8px; padding: 6px 12px; font-size: 12px; background-color: #3b82f6;" onclick="event.stopPropagation(); createShiftFromTemplate('${tpl.id}')">Использовать для смены</button></div>`).join('');
         if (!templatesList.length) { htmlList = `<div class="empty-text">Шаблонов нет.</div>`; }
         c.innerHTML = htmlList + `<button onclick="createTemplateFromWarehouse()" class="big-green-btn">Сделать шаблон из выбранного на складе</button>`;
     } else if (currentTab === 'shift-detail') {
         const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
-        t.innerText = s.name; p.classList.remove("hidden"); c.innerHTML = `<button class="back-btn" onclick="switchTab('shifts')" style="margin-bottom:10px; background:#27272a; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;">❮ К списку смен</button>` + buildHtml(s.items);
+        t.innerText = s.name; p.classList.remove("hidden"); c.innerHTML = `<button class="back-btn" onclick="switchTab('shifts')" style="margin-bottom: 10px; background: #27272a; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer;">❮ К списку смен</button>` + buildHtml(s.items);
     } else if (currentTab === 'template-detail') {
         const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
-        t.innerText = `Пресет: ${tpl.name}`; c.innerHTML = `<button class="back-btn" onclick="switchTab('templates')" style="margin-bottom:10px; background:#27272a; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;">❮ К шаблонам</button>` + buildHtml(tpl.items || []);
+        t.innerText = `Пресет: ${tpl.name}`; c.innerHTML = `<button class="back-btn" onclick="switchTab('templates')" style="margin-bottom: 10px; background: #27272a; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer;">❮ К шаблонам</button>` + buildHtml(tpl.items || []);
     }
 }
 renderAll();
