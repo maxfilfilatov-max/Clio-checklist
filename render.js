@@ -76,7 +76,6 @@ function buildTemplatesHtml() {
     return htmlList + `<button onclick="createTemplateFromWarehouse()" class="big-green-btn">Сделать шаблон из выбранного на складе</button>`;
 }
 
-// ФУНКЦИЯ ФОРМИРОВАНИЯ ТЕКСТА РАПОРТА
 function shareShiftToTelegram() {
     const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
     let text = `🎬 СМЕНА: ${s.name.toUpperCase()}\n📅 Дата: ${s.date}\n📊 Сборы: ${s.items.filter(i=>i.packed).length}/${s.items.length}\n\n`;
@@ -86,7 +85,10 @@ function shareShiftToTelegram() {
         list.forEach(i => { const status = i.packed ? "🟢" : "🔴"; text += `  ${status} ${i.brand} ${i.name} x${i.count}\n`; });
         text += `\n`;
     });
-    text += `🧬 Crew Checklist Pro`;
+    
+    // ИСПРАВЛЕНО: Двухстрочная фирменная подпись с пожеланием удачной смены
+    text += `🧬 Max&Clio equipment checklist\n🎬 Удачной смены!`;
+    
     if (navigator.share) { navigator.share({ title: s.name, text: text }).catch(err => console.log(err)); } 
     else { navigator.clipboard.writeText(text); alert("Скопировано в буфер! Вставьте в Telegram."); }
 }
