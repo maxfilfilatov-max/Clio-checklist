@@ -86,8 +86,8 @@ function shareShiftToTelegram() {
         text += `\n`;
     });
     
-    // ИСПРАВЛЕНО: Двухстрочная фирменная подпись с пожеланием удачной смены
-    text += `🧬 Max&Clio equipment checklist\n🎬 Удачной смены!`;
+    // ИСПРАВЛЕНО: Чистый текст подписи без единого смайлика
+    text += `Max&Clio equipment checklist\nУдачной смены!`;
     
     if (navigator.share) { navigator.share({ title: s.name, text: text }).catch(err => console.log(err)); } 
     else { navigator.clipboard.writeText(text); alert("Скопировано в буфер! Вставьте в Telegram."); }
