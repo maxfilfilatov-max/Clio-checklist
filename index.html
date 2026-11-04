@@ -18,7 +18,7 @@ function saveShiftAsTemplate(shiftId,event){
 function createTemplateFromWarehouse(){
     const chosen=warehouseItems.filter(i=>i.packed);if(chosen.length===0){alert("На Складе ничего не выбрано!");return;}
     const tplName=prompt("Введите название для нового шаблона:");if(!tplName||!tplName.trim())return;
-    templatesList.push({id:'tpl_'+Date.now(),name:tplName.trim(),desc:prompt("Введите описание шаблона:"),items:chosen.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.count>0?i.count:1}))});warehouseItems.forEach(i=>i.packed=false);localStorage.setItem('whTemplates',JSON.stringify(templatesList));saveAll();renderAll();
+    templatesList.push({id:'tpl_'+Date.now(),name:tplName.trim(),desc:prompt("Введите описание шаблона:"),items:chosen.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.count?i.count:1}))});warehouseItems.forEach(i=>i.packed=false);localStorage.setItem('whTemplates',JSON.stringify(templatesList));saveAll();renderAll();
 }
 function toggleItemPacked(id){
     if(currentTab==='template-detail')return;const arr=(currentTab==='inventory')?warehouseItems:shiftsList.find(s=>s.id===activeShiftId)?.items;
@@ -29,18 +29,15 @@ function deleteGlobalItem(id,e){
     if(currentTab==='shift-detail'){const s=shiftsList.find(x=>x.id===activeShiftId);if(s)s.items=s.items.filter(x=>x.id!==id);}if(currentTab==='template-detail'){const t=templatesList.find(x=>x.id===activeTemplateId);if(t)t.items=t.items.filter(x=>x.id!==id);}saveAll();renderAll();
 }
 function renderAll(){
-    const t=document.getElementById("main-title"),p=document.getElementById("progress-container-block"), c=document.getElementById("main-content-area");p.classList.add("hidden");
+    const t=document.getElementById("main-title"),p=document.getElementById("progress-container-block"),c=document.getElementById("main-content-area");p.classList.add("hidden");
     if(currentTab==='shifts'){
         t.innerText="Смены";if(!shiftsList.length){c.innerHTML=`<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`;return;}
         c.innerHTML=shiftsList.map(s=>`
             <div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();">
-                <!-- Верхний этаж: Название смены во весь экран -->
                 <div style="font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
                     <span>${s.name}</span><span style="color:#71717a;font-size:14px;">▶</span>
                 </div>
-                <!-- Разделительная линия между этажами -->
                 <div style="height:1px;background-color:#27272a;margin-bottom:10px;width:100%;"></div>
-                <!-- Нижний этаж: Сервисные данные и изолированные кнопки -->
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                     <div style="display:flex;flex-direction:column;gap:2px;">
                         <span style="font-size:13px;color:#a1a1aa;">📅 ${s.date}</span>
@@ -48,7 +45,7 @@ function renderAll(){
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;">
                         <button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:6px;background:#27272a;border-radius:6px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button>
-                        <button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id},event)}">🗑️ Удалить</button>
+                        <button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id},event)}">Удалить</button>
                     </div>
                 </div>
             </div>
