@@ -1,8 +1,8 @@
 function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; 
     const isInv = currentTab === 'inventory';
-    // Проверяем, находимся ли мы на экране просмотра деталей шаблона
-    const isTplDetail = currentTab === 'template-detail';
+    // ХИТРЫЙ ИСПРАВЛЕННЫЙ ТРЮК: если мы в шаблонах, у нас на кнопке возврата написано "К шаблонам"
+    const isTplDetail = currentTab === 'template-detail' || (document.getElementById("main-title") && document.getElementById("main-title").innerText.includes("Пресет"));
 
     Object.keys(categoriesConfig).forEach(k => {
         const inf = categoriesConfig[k], list = arr.filter(x => x.category === k);
@@ -23,7 +23,7 @@ function buildHtml(arr) {
                 if (sec !== "") inner += `<div class="section-title" ${secStyle}>• ${sec}</div>`;
                 
                 secL.forEach(i => {
-                    const isTpl = currentTab === 'template-detail';
+                    const isTpl = isTplDetail;
                     let rHtml = `<span class="count-tag">x${i.count > 0 ? i.count : 1}</span><button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
                     let chkClass = i.packed ? 'checked' : 'unchecked';
                     if (isRental) chkClass = i.packed ? 'checked-rental' : 'unchecked-rental';
@@ -34,17 +34,16 @@ function buildHtml(arr) {
         });
         if (isInv && !list.length) inner = `<div style="padding:15px;color:#71717a;text-align:center;">Пусто</div>`;
         
-        // ИСПРАВЛЕНО: Счётчик и кнопка "+" скрываются, если мы просматриваем шаблон
         const headerCounter = isInv ? `${list.filter(x => x.packed).length}/${list.length}` : `${cPk}/${cTot}`;
         const inlineAddBtn = `<button style="background:#27272a; border:none; color:#fff; border-radius:4px; width:22px; height:22px; font-weight:bold; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; justify-content:center;" onclick="event.stopPropagation(); handleCategoryAdd('${k}')">+</button>`;
         
         const cardClass = isRental ? 'card card-rental marker-rental' : `card marker-${k}`;
         const counterClass = isRental ? 'card-counter text-rental' : 'card-counter';
 
-        // Формируем правый блок заголовка в зависимости от вкладки
+        // ИСПРАВЛЕНО НА КРИТИЧЕСКОМ УРОВНЕ: Формируем правый блок шапки. В деталях пресета тут ГАРАНТИРОВАННО будет пусто.
         let headerRightHtml = `<span class="${counterClass}">${headerCounter}</span>${inlineAddBtn}`;
         if (isTplDetail) {
-            headerRightHtml = ""; // Полностью убираем и счётчик, и плюс для шаблонов
+            headerRightHtml = ""; 
         }
 
         html += `<div class="${cardClass}"><div class="card-header" onclick="toggleCategoryCollapse('${k}')"><div class="card-title" style="${isRental?'color:#f59e0b;':''}"><span>${inf.icon}</span> ${inf.name}</div><div style="display:flex; align-items:center;">${headerRightHtml}<span style="color:#71717a;font-size:10px;margin-left:8px;">${collapsedCats[k]?'▶':'▼'}</span></div></div><div class="item-list ${collapsedCats[k]?'hidden':''}">${inner}</div></div>`;
