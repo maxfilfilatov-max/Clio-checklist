@@ -1,4 +1,3 @@
-// Этот файл отвечает только за отрисовку карточек и строк на экране
 function buildHtml(arr) {
     let pk = 0, tot = 0, html = ""; const isInv = currentTab === 'inventory';
     Object.keys(categoriesConfig).forEach(k => {
