@@ -54,33 +54,36 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .subcategory-title { font-size: 12px; font-weight: 700; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 10px; background-color: #27272a; border-radius: 6px; margin: 14px 0 8px 0; }
 .section-title { font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px 4px; margin-top: 4px; }
 
-/* СИСТЕМА СВАЙПА КАРТОЧЕК СМЕН (iOS СТИЛЬ) */
-.shift-swipe-container {
-    position: relative;
-    overflow: hidden;
+/* НАТИВНЫЙ CSS СВАЙП iOS ДЛЯ КАРТОЧЕК */
+.shift-swipe-wrapper {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Скрываем полосу прокрутки в Firefox */
     border-radius: 14px;
     margin-top: 12px;
-    background-color: #ef4444;
+    touch-action: pan-y;
+}
+.shift-swipe-wrapper::-webkit-scrollbar {
+    display: none; /* Скрываем полосу прокрутки в Safari и Chrome */
 }
 .shift-card { 
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: start;
     background-color: #1c1c1e; 
     padding: 18px; 
-    margin-top: 0 !important;
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     cursor: pointer; 
-    position: relative;
-    z-index: 2;
-    transition: transform 0.2s ease-out;
-    touch-action: pan-y;
+    box-sizing: border-box;
 }
 .swipe-delete-btn {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    flex: 0 0 80px;
     width: 80px;
+    scroll-snap-align: end;
     background-color: #ef4444;
     color: #ffffff;
     border: none;
@@ -89,10 +92,10 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     text-transform: uppercase;
     letter-spacing: 0.6px;
     cursor: pointer;
-    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
 .empty-text { text-align: center; color: #71717a; padding: 40px 20px; font-size: 16px; }
