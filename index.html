@@ -27,8 +27,8 @@
         </nav>
     </div>
     <script src="data.js"></script>
-    <!-- ПОДНИМАЕМ ВЕРСИЮ ДО v=8 ДЛЯ СБРОСА КЭША SAFARI -->
-    <script src="render.js?v=8"></script>
+    <!-- ПОДНИМАЕМ ВЕРСИЮ ДО v=9 ДЛЯ СБРОСА КЭША SAFARI НА АЙФОНЕ -->
+    <script src="render.js?v=9"></script>
     <script>
     let currentTab = 'shifts', activeShiftId = null, activeTemplateId = null;
 
@@ -41,7 +41,6 @@
 
     function toggleCategoryCollapse(k) { collapsedCats[k] = !collapsedCats[k]; saveAll(); renderAll(); }
 
-    // ИСПРАВЛЕНО: Обновлённые подписи окон ввода под ваши задачи
     function handleCategoryAdd(categoryKey) {
         const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
         if (!arr) return;
@@ -98,19 +97,21 @@
         const t = document.getElementById("main-title"), p = document.getElementById("progress-container-block"), c = document.getElementById("main-content-area");
         p.classList.add("hidden");
         if (currentTab === 'shifts') {
-            t.innerText = "Смены"; if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Сформируйте смену на Складе.</div>`; return; }
+            t.innerHTML = "Смены"; if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Сформируйте смену на Складе.</div>`; return; }
             c.innerHTML = shiftsList.map(s => `<div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();"><div style="font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><span>${s.name}</span><span style="color:#71717a;font-size:14px;">▶</span></div><div style="height:1px;background-color:#27272a;margin-bottom:10px;width:100%;"></div><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:13px;color:#a1a1aa;">📅 ${s.date}</span><span style="font-size:12px;color:#10b981;font-weight:500;">Собрано: ${s.items.reduce((a,i)=>a+(i.packed?i.count:0),0)}/${s.items.reduce((a,i)=>a+i.count,0)}</span></div><div style="display:flex;align-items:center;gap:12px;"><button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:6px;background:#27272a;border-radius:6px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button><button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id},event)}">Удалить</button></div></div></div>`).join('');
         } else if (currentTab === 'inventory') {
-            t.innerText = "Каталог Склада"; c.innerHTML = buildHtml(warehouseItems) + `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
+            // ИСПРАВЛЕНО: Двухэтажная кастомная шапка для Каталога Склада
+            t.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;"><span>ТЕХНИЧЕСКАЯ БАЗА CLIO</span><span style="font-size:13px;color:#71717a;font-weight:400;text-transform:none;letter-spacing:0px;">Max equipment checklist</span></div>`;
+            c.innerHTML = buildHtml(warehouseItems) + `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
         } else if (currentTab === 'templates') {
-            t.innerText = "Шаблоны"; c.innerHTML = buildTemplatesHtml();
+            t.innerHTML = "Шаблоны"; c.innerHTML = buildTemplatesHtml();
         } else if (currentTab === 'shift-detail') {
             const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
-            t.innerText = s.name; p.classList.remove("hidden"); 
+            t.innerHTML = s.name; p.classList.remove("hidden"); 
             c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Экспорт списка</button></div>` + buildHtml(s.items);
         } else if (currentTab === 'template-detail') {
             const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
-            t.innerText = `Пресет: ${tpl.name}`; c.innerHTML = `<button class="back-btn" onclick="switchTab('templates')" style="margin-bottom:10px;background:#27272a;border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;">❮ К шаблонам</button>` + buildHtml(tpl.items || []);
+            t.innerHTML = `Пресет: ${tpl.name}`; c.innerHTML = `<button class="back-btn" onclick="switchTab('templates')" style="margin-bottom:10px;background:#27272a;border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;">❮ К шаблонам</button>` + buildHtml(tpl.items || []);
         }
     }
     renderAll();
