@@ -27,8 +27,8 @@
         </nav>
     </div>
     <script src="data.js"></script>
-    <!-- ОБНОВЛЕНО НА ВЕРСИЮ 6 ДЛЯ СБРОСА СТАРОЙ ПАМЯТИ SAFARI -->
-    <script src="render.js?v=6"></script>
+    <!-- ПОДНИМАЕМ ВЕРСИЮ ДО v=8 ДЛЯ СБРОСА КЭША SAFARI -->
+    <script src="render.js?v=8"></script>
     <script>
     let currentTab = 'shifts', activeShiftId = null, activeTemplateId = null;
 
@@ -41,11 +41,16 @@
 
     function toggleCategoryCollapse(k) { collapsedCats[k] = !collapsedCats[k]; saveAll(); renderAll(); }
 
+    // ИСПРАВЛЕНО: Обновлённые подписи окон ввода под ваши задачи
     function handleCategoryAdd(categoryKey) {
         const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
         if (!arr) return;
-        const name = prompt("Название прибора:"); if (!name || !name.trim()) return;
-        arr.push({ id: Date.now(), name: name.trim(), brand: prompt("Бренд:") || "Без бренда", count: (currentTab === 'inventory') ? 0 : (parseInt(prompt("Количество:", "1")) || 1), packed: false, category: categoryKey, subcategory: prompt("Подкатегория:", "Разное").trim(), section: "" });
+        const name = prompt("Наименование:"); if (!name || !name.trim()) return;
+        const brand = prompt("Описание:") || "Без описания";
+        const count = parseInt(prompt("Количество (штук):", "1")) || 1;
+        const subcat = prompt("Подкатегория:", "Разное").trim() || "Разное";
+        
+        arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: "" });
         saveAll(); renderAll();
     }
 
