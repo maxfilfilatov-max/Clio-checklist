@@ -38,15 +38,13 @@
         const tpl=templatesList.find(t=>t.id===tplId);if(!tpl)return;const name=prompt(`Название смены для "${tpl.name}":`);if(!name||!name.trim())return;
         shiftsList.push({id:Date.now(),name:name.trim(),date:prompt("Дата смены:",new Date().toLocaleDateString('ru-RU'))||"",items:tpl.items.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.count>0?i.count:1}))});saveAll();switchTab('shifts');
     }
-    // ИСПРАВЛЕНО: Теперь в шаблон из готовой смены уходят ТОЛЬКО позиции, которые были добавлены (count > 0)
     function saveShiftAsTemplate(shiftId,e){
         e.stopPropagation();const s=shiftsList.find(x=>x.id===shiftId);if(!s)return;
         const validItems = s.items.filter(i => i.count > 0);
-        if(!validItems.length) { alert("В этой смене нет оборудования для создания шаблона!"); return; }
+        if(!validItems.length) { alert("В этой смене нет оборудования!"); return; }
         const n=prompt("Название шаблона:",`Шаблон: ${s.name}`);if(!n||!n.trim())return;
         templatesList.push({id:'tpl_'+Date.now(),name:n.trim(),desc:prompt("Описание:")||"Из смены",items:validItems.map(i=>({...i,id:Date.now()+Math.random(),packed:false}))});saveAll();switchTab('templates');
     }
-    // ИСПРАВЛЕНО: Создание шаблона со Склада берет СТРОГО те приборы, на которых проставлены галочки
     function createTemplateFromWarehouse(){
         const chosen=warehouseItems.filter(i => i.packed);
         if(!chosen.length){alert("Вы не выбрали ни одного прибора галочкой на Складе!");return;}
