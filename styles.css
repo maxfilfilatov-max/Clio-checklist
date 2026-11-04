@@ -1,14 +1,12 @@
 body {
-    background-color: #0d0d0e !important; /* Приглушенный черный для читаемости теней */
+    background-color: #0d0d0e !important;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
-    /* Учитываем боковые безопасные зоны iPhone при повороте */
     padding: 20px calc(12px + env(safe-area-inset-right)) 20px calc(12px + env(safe-area-inset-left));
     display: flex;
     justify-content: center;
 }
-/* Сделали ширину адаптивной, увеличили максимум для Pro Max, добавили отступ снизу под новое меню */
 .phone-container { 
     width: 100%; 
     max-width: 430px; 
@@ -29,7 +27,6 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .card-title { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px; }
 .card-counter { color: #10b981; font-weight: 600; font-size: 15px; }
 
-/* Динамические левые цветные маркеры для главных категорий */
 .marker-camera::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#2563eb; }
 .marker-sound::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#7c3aed; }
 .marker-support::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background-color:#dc2626; }
@@ -56,14 +53,50 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 
 .subcategory-title { font-size: 12px; font-weight: 700; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 10px; background-color: #27272a; border-radius: 6px; margin: 14px 0 8px 0; }
 .section-title { font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px 4px; margin-top: 4px; }
-.shift-card { background-color: #1c1c1e; border-radius: 14px; padding: 18px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.shift-info { display: flex; flex-direction: column; gap: 4px; }
-.shift-name { font-size: 17px; font-weight: 600; color: #ffffff; }
-.shift-meta { font-size: 13px; color: #a1a1aa; }
-.shift-arrow { color: #71717a; font-size: 15px; }
+
+/* СИСТЕМА СВАЙПА КАРТОЧЕК СМЕН (iOS СТИЛЬ) */
+.shift-swipe-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    margin-top: 12px;
+    background-color: #ef4444; /* Красный фон, который откроется под карточкой */
+}
+.shift-card { 
+    background-color: #1c1c1e; 
+    padding: 18px; 
+    margin-top: 0 !important; /* Обнуляем маргин, так как его забрал контейнер */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    cursor: pointer; 
+    position: relative;
+    z-index: 2;
+    transition: transform 0.2s ease-out; /* Плавный возврат или открытие свайпа */
+    touch-action: pan-y; /* Позволяет листать экран вертикально без затыков */
+}
+.swipe-delete-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    background-color: #ef4444;
+    color: #ffffff;
+    border: none;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .empty-text { text-align: center; color: #71717a; padding: 40px 20px; font-size: 16px; }
 
-/* ВЫДЕЛЕНИЕ АРЕНДЫ */
 .card-rental { background-color: #241a10 !important; border: 1px solid #d97706; }
 .text-rental { color: #f59e0b !important; }
 .checkbox.checked-rental { border: 2px solid #f59e0b; background-color: #f59e0b; color: #000000 !important; }
@@ -85,11 +118,6 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 }
 .big-green-btn:hover { background-color: #15803d; }
 
-
-/* ========================================================================= */
-/* --- МАТЕРИАЛИСТИЧЕСКОЕ НЕОМОРФНОЕ МЕНЮ (ПО РЕФЕРЕНСУ) --- */
-/* ========================================================================= */
-
 nav { 
     position: fixed; 
     bottom: 0; 
@@ -107,8 +135,6 @@ nav {
     box-sizing: border-box;
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6); 
 }
-
-/* Кнопка меню в обычном состоянии */
 .nav-item { 
     display: flex; 
     flex-direction: column; 
@@ -128,40 +154,13 @@ nav {
     transition: all 0.2s ease;
     box-sizing: border-box;
 }
-
-/* Крупный размер для надежных системных эмодзи внутри неоморфных плашек */
-.nav-item span:first-child {
-    font-size: 20px;
-    opacity: 0.6;
-    transition: all 0.2s ease;
-}
-
-/* Текстовые подписи */
-.nav-item span:last-child {
-    font-size: 11px;
-}
-
-/* ЭФФЕКТ ДЛЯ АКТИВНОЙ КНОПКИ (По вашему референсу) */
+.nav-item span:first-child { font-size: 20px; opacity: 0.6; transition: all 0.2s ease; }
+.nav-item span:last-child { font-size: 11px; }
 .nav-item.active { 
     color: #ffffff; 
     background: #1e1e21;
-    box-shadow: 
-        inset 1px 1px 2px rgba(255, 255, 255, 0.1), 
-        3px 3px 6px rgba(0, 0, 0, 0.5),             
-        -2px -2px 5px rgba(255, 255, 255, 0.03);    
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.1), 3px 3px 6px rgba(0, 0, 0, 0.5), -2px -2px 5px rgba(255, 255, 255, 0.03);    
 }
-
-/* Яркая подсветка активного эмодзи */
-.nav-item.active span:first-child {
-    opacity: 1;
-    transform: scale(1.05);
-}
-
-/* Мягкий эффект физического продавливания при непосредственном нажатии пальцем (клик) */
-.nav-item:active {
-    background: #111112;
-    box-shadow: 
-        inset 3px 3px 6px rgba(0, 0, 0, 0.6), 
-        inset -2px -2px 5px rgba(255, 255, 255, 0.05);
-}
+.nav-item.active span:first-child { opacity: 1; transform: scale(1.05); }
+.nav-item:active { background: #111112; box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.05); }
 .hidden { display: none !important; }
