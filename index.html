@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Чек-лист оборудования</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Кастомная иконка Apple для Home Screen -->
     <link rel="apple-touch-icon" href="icon.png?v=2">
 </head>
 <body>
@@ -25,7 +27,8 @@
         </nav>
     </div>
     <script src="data.js"></script>
-    <script src="render.js"></script>
+    <!-- ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ КЭША ДЛЯ АЙФОНА -->
+    <script src="render.js?v=2"></script>
     <script>
     let currentTab='shifts',activeShiftId=null,activeTemplateId=null;
     function switchTab(t){currentTab=t;activeShiftId=null;activeTemplateId=null;document.querySelectorAll('nav .nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('nav-'+t).classList.add('active');renderAll();}
