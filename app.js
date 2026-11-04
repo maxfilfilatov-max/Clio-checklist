@@ -25,6 +25,7 @@ function createShiftFromTemplate(tplId) {
     saveAll(); switchTab('shifts');
 }
 
+// Превращаем смену обратно в шаблон
 function saveShiftAsTemplate(shiftId, event) {
     event.stopPropagation(); const shift = shiftsList.find(s => s.id === shiftId); if (!shift) return;
     const tplName = prompt("Введите название для нового шаблона:", `Шаблон: ${shift.name}`); if (!tplName || !tplName.trim()) return;
@@ -39,7 +40,6 @@ function createTemplateFromWarehouse() {
     warehouseItems.forEach(i => i.packed = false); saveAll(); renderAll();
 }
 
-// ИСПРАВЛЕНО: Теперь переключение работает корректно и на Складе (inventory), и внутри Смены
 function toggleItemPacked(id) {
     if (currentTab === 'template-detail') return;
     const arr = (currentTab === 'inventory') ? warehouseItems : shiftsList.find(s => s.id === activeShiftId)?.items;
