@@ -54,6 +54,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .subcategory-title { font-size: 12px; font-weight: 700; color: #e4e4e7; text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 10px; background-color: #27272a; border-radius: 6px; margin: 14px 0 8px 0; }
 .section-title { font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px 4px; margin-top: 4px; }
 
+/* НАТИВНЫЙ CSS СВАЙП iOS ДЛЯ КАРТОЧЕК */
 .shift-swipe-wrapper {
     display: flex;
     overflow-x: auto;
@@ -78,6 +79,8 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     align-items: center; 
     cursor: pointer; 
     box-sizing: border-box;
+    position: relative;
+    z-index: 2;
 }
 .swipe-delete-btn {
     flex: 0 0 80px;
@@ -95,6 +98,8 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    position: relative;
+    z-index: 99 !important;
 }
 
 .empty-text { text-align: center; color: #71717a; padding: 40px 20px; font-size: 16px; }
