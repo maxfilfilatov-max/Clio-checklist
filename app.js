@@ -25,7 +25,6 @@ function createShiftFromTemplate(tplId) {
     saveAll(); switchTab('shifts');
 }
 
-// Превращаем смену обратно в шаблон
 function saveShiftAsTemplate(shiftId, event) {
     event.stopPropagation(); const shift = shiftsList.find(s => s.id === shiftId); if (!shift) return;
     const tplName = prompt("Введите название для нового шаблона:", `Шаблон: ${shift.name}`); if (!tplName || !tplName.trim()) return;
@@ -40,6 +39,7 @@ function createTemplateFromWarehouse() {
     warehouseItems.forEach(i => i.packed = false); saveAll(); renderAll();
 }
 
+// ФУНКЦИЯ КЛИКА: Четко разделена по вкладкам
 function toggleItemPacked(id) {
     if (currentTab === 'template-detail') return;
     const arr = (currentTab === 'inventory') ? warehouseItems : shiftsList.find(s => s.id === activeShiftId)?.items;
@@ -59,7 +59,10 @@ function deleteGlobalItem(id, e) {
 
 let touchStartX = 0, touchCurrentX = 0, activeSwipedCard = null;
 
+// ИСПРАВЛЕНО: Свайп работает СТРОГО на карточках смен и не лезет в списки оборудования
 function initSwipeEvents() {
+    if (currentTab !== 'shifts') return; // Полная блокировка свайпов на других экранах
+    
     document.querySelectorAll('.shift-card').forEach(card => {
         card.addEventListener('touchstart', e => {
             if (activeSwipedCard && activeSwipedCard !== card) {
