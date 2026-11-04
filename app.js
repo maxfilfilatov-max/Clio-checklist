@@ -39,15 +39,16 @@ function createTemplateFromWarehouse() {
     warehouseItems.forEach(i => i.packed = false); saveAll(); renderAll();
 }
 
+// ИСПРАВЛЕНО: Теперь переключение работает корректно и на Складе (inventory), и внутри Смены
 function toggleItemPacked(id) {
-    if (currentTab === 'template-detail' || currentTab === 'inventory') return;
-    const arr = shiftsList.find(s => s.id === activeShiftId)?.items;
+    if (currentTab === 'template-detail') return;
+    const arr = (currentTab === 'inventory') ? warehouseItems : shiftsList.find(s => s.id === activeShiftId)?.items;
     if (arr) { const i = arr.find(x => x.id === id); if (i) i.packed = !i.packed; }
     saveAll(); renderAll();
 }
 
 function deleteGlobalItem(id, e) {
-    if(e) e.stopPropagation(); if (!confirm("Удалить проект навсегда?")) return;
+    if(e) e.stopPropagation();
     if (currentTab === 'inventory') warehouseItems = warehouseItems.filter(x => x.id !== id);
     if (currentTab === 'shifts') shiftsList = shiftsList.filter(x => x.id !== id);
     if (currentTab === 'templates') templatesList = templatesList.filter(x => x.id !== id);
@@ -56,24 +57,21 @@ function deleteGlobalItem(id, e) {
     saveAll(); renderAll();
 }
 
-// ПЕРЕМЕННЫЕ ДЛЯ ОБРАБОТКИ iOS ЖЕСТОВ
 let touchStartX = 0, touchCurrentX = 0, activeSwipedCard = null;
 
 function initSwipeEvents() {
     document.querySelectorAll('.shift-card').forEach(card => {
         card.addEventListener('touchstart', e => {
-            // Если открыта другая карточка — закрываем её
             if (activeSwipedCard && activeSwipedCard !== card) {
                 activeSwipedCard.style.transform = 'translateX(0px)';
                 activeSwipedCard = null;
             }
-            touchStartX = e.touches[0].clientX;
+            touchStartX = e.touches.clientX;
         }, { passive: true });
 
         card.addEventListener('touchmove', e => {
-            touchCurrentX = e.touches[0].clientX;
+            touchCurrentX = e.touches.clientX;
             let diffX = touchCurrentX - touchStartX;
-            // Листаем только справа налево и не дальше чем на 90px
             if (diffX < 0 && diffX > -100) {
                 card.style.transform = `translateX(${diffX}px)`;
             }
@@ -82,11 +80,9 @@ function initSwipeEvents() {
         card.addEventListener('touchend', e => {
             let diffX = touchCurrentX - touchStartX;
             if (diffX < -45) {
-                // Если сдвинули сильнее половины — фиксируем скрытую кнопку удаления
                 card.style.transform = 'translateX(-80px)';
                 activeSwipedCard = card;
             } else {
-                // Иначе возвращаем карточку на место
                 card.style.transform = 'translateX(0px)';
                 if (activeSwipedCard === card) activeSwipedCard = null;
             }
@@ -101,10 +97,9 @@ function renderAll() {
         t.innerText = "Смены"; 
         if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Перейдите в Каталог Склада, отметьте приборы и нажмите кнопку снизу, чтобы оформить проект.</div>`; return; }
         
-        // Генерация свайп-контейнеров под iOS стиль
         c.innerHTML = shiftsList.map(s => `
             <div class="shift-swipe-container">
-                <div class="swipe-delete-btn" onclick="deleteGlobalItem(${s.id}, event)">Удалить</div>
+                <div class="swipe-delete-btn" onclick="if(confirm('Удалить проект навсегда?')){deleteGlobalItem(${s.id}, event)}">Удалить</div>
                 <div class="shift-card" onclick="if(this.style.transform==='translateX(-80px)'){this.style.transform='translateX(0px)';}else{currentTab='shift-detail';activeShiftId=${s.id};renderAll();}">
                     <div class="shift-info">
                         <span class="shift-name">${s.name}</span>
@@ -118,13 +113,12 @@ function renderAll() {
             </div>
         `).join('');
         
-        // Включаем прослушивание свайпов сразу после отрисовки смен
         initSwipeEvents();
     } else if (currentTab === 'inventory') {
         t.innerText = "Каталог Склада"; c.innerHTML = buildHtml(warehouseItems) + `<button onclick="checkoutToShiftFlex()" class="big-green-btn">Взять на смену!</button>`;
     } else if (currentTab === 'templates') {
         t.innerText = "Шаблоны"; 
-        let htmlList = templatesList.map(tpl => `<div class="shift-card" style="flex-direction:column; align-items:flex-start; gap:10px;" onclick="currentTab='template-detail';activeTemplateId='${tpl.id}';renderAll()"><div class="shift-info" style="width:100%; display:flex; justify-content:between; flex-direction:row;"><div style="display:flex; flex-direction:column; gap:4px; flex:1;"><span class="shift-name">${tpl.name}</span><span class="shift-meta">${tpl.desc}</span><span class="shift-meta" style="color:#3b82f6;">📦 Позиций: ${tpl.items ? tpl.items.length : 0}</span></div><button class="subtle-delete" onclick="deleteGlobalItem('${tpl.id}',event)">✕</button></div><button class="add-btn" style="width:auto; height:auto; border-radius:8px; padding:6px 12px; font-size:12px; background-color:#3b82f6;" onclick="event.stopPropagation(); createShiftFromTemplate('${tpl.id}')">Использовать для смены</button></div>`).join('');
+        let htmlList = templatesList.map(tpl => `<div class="shift-card" style="flex-direction:column; align-items:flex-start; gap:10px;" onclick="currentTab='template-detail';activeTemplateId='${tpl.id}';renderAll()"><div class="shift-info" style="width:100%; display:flex; justify-content:between; flex-direction:row;"><div style="display:flex; flex-direction:column; gap:4px; flex:1;"><span class="shift-name">${tpl.name}</span><span class="shift-meta">${tpl.desc}</span><span class="shift-meta" style="color:#3b82f6;">📦 Позиций: ${tpl.items ? tpl.items.length : 0}</span></div><button class="subtle-delete" onclick="if(confirm('Удалить шаблон?')){deleteGlobalItem('${tpl.id}',event)}">✕</button></div><button class="add-btn" style="width:auto; height:auto; border-radius:8px; padding:6px 12px; font-size:12px; background-color:#3b82f6;" onclick="event.stopPropagation(); createShiftFromTemplate('${tpl.id}')">Использовать для смены</button></div>`).join('');
         if (!templatesList.length) { htmlList = `<div class="empty-text">Шаблонов нет.</div>`; }
         c.innerHTML = htmlList + `<button onclick="createTemplateFromWarehouse()" class="big-green-btn">Сделать шаблон из выбранного на складе</button>`;
     } else if (currentTab === 'shift-detail') {
