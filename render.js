@@ -5,7 +5,7 @@ function buildHtml(arr) {
     const isTplDetail = (currentTab === 'template-detail');
 
     if (isInv) {
-        html += `<div style="margin-top:12px;margin-bottom:16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск прибора или бренда..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background-color:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#ffffff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
+        html += `<div style="margin-top:12px;margin-bottom:16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background-color:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#ffffff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
     }
 
     Object.keys(categoriesConfig).forEach(k => {
@@ -38,6 +38,7 @@ function buildHtml(arr) {
                     let chkClass = i.packed ? 'checked' : 'unchecked';
                     if (isRental) chkClass = i.packed ? 'checked-rental' : 'unchecked-rental';
 
+                    // Здесь переменная i.brand теперь красиво выводится как Описание под прибором
                     inner += `<div class="item-row" onclick="toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${isTpl ? 'hidden' : chkClass}">${i.packed ? '✓' : ''}</div><div class="item-info" style="${isTpl ? 'padding-left:5px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed ? 'packed-text' : 'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-right-side">${rHtml}</div></div>`;
                 });
             });
@@ -82,13 +83,11 @@ function shareShiftToTelegram() {
     Object.keys(categoriesConfig).forEach(k => {
         const inf = categoriesConfig[k]; const list = s.items.filter(i => i.category === k); if (list.length === 0) return;
         text += `${inf.icon} ${inf.name.toUpperCase()}:\n`;
-        list.forEach(i => { const status = i.packed ? "🟢" : "🔴"; text += `  ${status} ${i.brand} ${i.name} x${i.count}\n`; });
+        // В ТГ-отчёте бренд теперь тоже красиво выгружается текстом описания
+        list.forEach(i => { const status = i.packed ? "🟢" : "🔴"; text += `  ${status} ${i.name} (${i.brand}) x${i.count}\n`; });
         text += `\n`;
     });
-    
-    // ИСПРАВЛЕНО: Чистый текст подписи без единого смайлика
     text += `Max&Clio equipment checklist\nУдачной смены!`;
-    
     if (navigator.share) { navigator.share({ title: s.name, text: text }).catch(err => console.log(err)); } 
     else { navigator.clipboard.writeText(text); alert("Скопировано в буфер! Вставьте в Telegram."); }
 }
