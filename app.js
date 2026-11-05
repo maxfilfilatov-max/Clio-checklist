@@ -55,13 +55,30 @@ function saveShiftAsTemplate(shiftId,e){
 function createTemplateFromWarehouse(){
     const chosen=warehouseItems.filter(i=>i.packed);if(!chosen.length){alert("Вы не выбрали ни одного прибора галочкой на Складе!");return;}
     const n=prompt("Название шаблона:");if(!n||!n.trim())return;
-    templatesList.push({id:'tpl_'+Date.now(),name:n.trim(),desc:prompt("Описание:"),items:chosen.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:1}))});
-    warehouseItems.forEach(i=>i.packed=false);saveAll();renderAll();
+    templatesList.push({id:'tpl_'+Date.now(),name:n.trim(),desc:prompt("Описание:"),items:chosen.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.selectedCount||1}))});
+    warehouseItems.forEach(i=>{i.packed=false;delete i.selectedCount;});saveAll();renderAll();
 }
 
 function toggleItemPacked(id){
-    const arr=(currentTab==='inventory')?warehouseItems:shiftsList.find(s=>s.id===activeShiftId)?.items;
-    if(arr){const i=arr.find(x=>x.id===id);if(i)i.packed=!i.packed;}saveAll();renderAll();
+    if(currentTab==='inventory'){
+        const i=warehouseItems.find(x=>x.id===id);if(!i)return;
+        if(i.packed){i.packed=false;delete i.selectedCount;}
+        else{
+            const max=i.count>0?i.count:1;
+            if(max>1){
+                const ans=prompt(`Сколько взять "${i.name}"? (На складе: ${max} шт.)`,String(max));
+                if(ans===null)return;
+                const qty=parseInt(ans);
+                if(isNaN(qty)||qty<1||qty>max){alert(`Укажите число от 1 до ${max}`);return;}
+                i.selectedCount=qty;
+            }else{i.selectedCount=1;}
+            i.packed=true;
+        }
+    }else{
+        const arr=shiftsList.find(s=>s.id===activeShiftId)?.items;
+        if(arr){const i=arr.find(x=>x.id===id);if(i)i.packed=!i.packed;}
+    }
+    saveAll();renderAll();
 }
 
 function deleteGlobalItem(id,e){
