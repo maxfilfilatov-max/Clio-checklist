@@ -3,7 +3,7 @@ function getOrderedSubcategories(k,l){const r=[...new Set(l.map(x=>x.subcategory
 function buildHtml(arr){
     let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode;
     if(isInv){
-        if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:10px 14px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;">⚙️ Режим правки: двигайте разделы, меняйте цеха или удаляйте позиции</div>`;
+        if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:10px 14px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;">⚙️ Режим правки: двигайте разделы, меняйте цеха или редактируйте позиции</div>`;
         html+=`<div style="margin:12px 0 16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#fff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
     }
     Object.keys(categoriesConfig).forEach(k=>{
@@ -28,11 +28,11 @@ function buildHtml(arr){
                 secL.forEach(i=>{
                     const maxC=i.count>0?i.count:1;
                     let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
-                    if(isEdit)rH=`<button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
+                    if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
                     else if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
                     let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';
                     const hC=isTpl||isEdit;
-                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-right-side">${rH}</div></div>`;
+                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-right-side" style="gap:6px;">${rH}</div></div>`;
                 });
             });
         });
