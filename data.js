@@ -29,10 +29,12 @@ let warehouseItems = localStorage.getItem('whItems') ? JSON.parse(localStorage.g
 
 let shiftsList = localStorage.getItem('shiftsList') ? JSON.parse(localStorage.getItem('shiftsList')) : [];
 let collapsedCats = localStorage.getItem('colCats') ? JSON.parse(localStorage.getItem('colCats')) : {};
+let subcatOrder = localStorage.getItem('subcatOrder') ? JSON.parse(localStorage.getItem('subcatOrder')) : {};
 
 function saveAll() {
     localStorage.setItem('whItems', JSON.stringify(warehouseItems));
     localStorage.setItem('shiftsList', JSON.stringify(shiftsList));
     localStorage.setItem('colCats', JSON.stringify(collapsedCats));
     localStorage.setItem('whTemplates', JSON.stringify(templatesList));
+    localStorage.setItem('subcatOrder', JSON.stringify(subcatOrder));
 }
