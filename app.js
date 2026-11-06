@@ -58,7 +58,7 @@ function handleCategoryAdd(categoryKey) {
 
 function createShiftFromTemplate(tplId) {
     const tpl = templatesList.find(t => t.id === tplId); if (!tpl) return;
-    const name = prompt(`Название смены для "${tpl.name}":`); if (!name || !name.trim()) return;
+    const name = prompt("Название смены:"); if (!name || !name.trim()) return;
     shiftsList.push({ id: Date.now(), name: name.trim(), date: prompt("Дата смены:", new Date().toLocaleDateString('ru-RU')) || "", items: tpl.items.map(i => ({ ...i, id: Date.now() + Math.random(), packed: false, count: i.count > 0 ? i.count : 1 })) });
     saveAll(); switchTab('shifts');
 }
@@ -113,10 +113,43 @@ function deleteGlobalItem(id, e) {
     saveAll(); renderAll();
 }
 
+// ЭКСПОРТ: Собирает склад, шаблоны и порядок сортировки в один текстовый код
+function exportClioDatabase() {
+    try {
+        const db = { warehouse: warehouseItems, templates: templatesList, order: subcatOrder };
+        const jsonStr = JSON.stringify(db);
+        const encoded = btoa(encodeURIComponent(jsonStr));
+        if (navigator.share) {
+            navigator.share({ title: 'Clio Base Backup', text: encoded }).catch(e => console.log(e));
+        } else {
+            navigator.clipboard.writeText(encoded);
+            alert("Код бэкапа скопирован в буфер обмена! Перешлите его в Telegram.");
+        }
+    } catch(e) { alert("Ошибка при экспорте: " + e.message); }
+}
+
+// ИМПОРТ: Принимает код, расшифровывает и мгновенно обновляет базу Clio
+function importClioDatabase() {
+    const code = prompt("Вставьте текстовый код бэкапа базы Clio:");
+    if (!code || !code.trim()) return;
+    try {
+        const decodedStr = decodeURIComponent(atob(code.trim()));
+        const db = JSON.parse(decodedStr);
+        if (db.warehouse && Array.isArray(db.warehouse)) {
+            if (confirm("Внимание! Импорт полностью заменит текущий Склад и Шаблоны. Продолжить?")) {
+                warehouseItems = db.warehouse;
+                if (db.templates) templatesList = db.templates;
+                if (db.order) subcatOrder = db.order;
+                saveAll(); isWarehouseEditMode = false; renderAll();
+                alert("Техническая база Clio успешно импортирована!");
+            }
+        } else { alert("Неверный формат кода бэкапа."); }
+    } catch(e) { alert("Ошибка импорта! Убедитесь, что скопировали код целиком."); }
+}
+
 function renderAll() {
     const t = document.getElementById("main-title"), p = document.getElementById("progress-container-block"), c = document.getElementById("main-content-area"), hr = document.getElementById("header-right-action");
     p.classList.add("hidden"); hr.innerHTML = "";
-
     if (currentTab === 'shifts') {
         t.innerHTML = "Смены";
         if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Сформируйте смену на Складе.</div>`; return; }
