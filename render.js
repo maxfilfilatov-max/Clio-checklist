@@ -3,20 +3,18 @@ function getOrderedSubcategories(k,l){const r=[...new Set(l.map(x=>x.subcategory
 function buildHtml(arr){
     let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode;
     if(isInv){
-        if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:10px 14px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;">⚙️ Режим правки: двигайте разделы, меняйте цеха или редактируйте позиции</div>`;
+        if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:12px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;"><div>⚙️ РЕЖИМ НАСТРОЕК БАЗЫ CLIO</div><div style="display:flex;justify-content:center;gap:10px;margin-top:10px;"><button onclick="importClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📥 ИМПОРТ</button><button onclick="exportClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#10b981;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📤 ЭКСПОРТ</button></div></div>`;
         html+=`<div style="margin:12px 0 16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#fff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
     }
     Object.keys(categoriesConfig).forEach(k=>{
-        const inf=categoriesConfig[k];let list=arr.filter(x=>x.category===k);
-        if(!isInv&&!list.length)return;
+        const inf=categoriesConfig[k];let list=arr.filter(x=>x.category===k);if(!isInv&&!list.length)return;
         if(isInv&&warehouseSearchQuery.trim()!==""){const q=warehouseSearchQuery.toLowerCase().trim();list=list.filter(i=>i.name.toLowerCase().includes(q)||i.brand.toLowerCase().includes(q)||i.subcategory.toLowerCase().includes(q));if(!list.length)return;}
         let cPk=0,cTot=0,inner="";list.forEach(i=>{cTot+=i.count;tot+=i.count;if(i.packed){cPk+=i.count;pk+=i.count;}});
         const isR=k==='rental',oSubs=getOrderedSubcategories(k,list);
         oSubs.forEach((sub,idx)=>{
             const subL=list.filter(x=>x.subcategory===sub);if(!subL.length)return;
             const sSt=isR?'style="color:#f59e0b;border-bottom:2px solid #5f3e0e;display:flex;justify-content:space-between;align-items:center;"':'style="display:flex;justify-content:space-between;align-items:center;"';
-            let sCtrl="";
-            if(isEdit){
+            let sCtrl="";if(isEdit){
                 const uB=idx>0?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',-1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▲</button>`:`<span style="width:24px;display:inline-block;"></span>`;
                 const dB=idx<oSubs.length-1?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▼</button>`:`<span style="width:24px;display:inline-block;"></span>`;
                 sCtrl=`<div style="display:flex;gap:4px;">${uB}${dB}</div>`;
@@ -26,13 +24,11 @@ function buildHtml(arr){
                 const secL=subL.filter(x=>x.section===sec);if(!secL.length)return;
                 if(sec!=="")inner+=`<div class="section-title" ${isR?'style="background:#3a2512;color:#f59e0b;"':''}>• ${sec}</div>`;
                 secL.forEach(i=>{
-                    const maxC=i.count>0?i.count:1;
-                    let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
+                    const maxC=i.count>0?i.count:1;let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
                     if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
                     else if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
-                    let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';
-                    const hC=isTpl||isEdit;
-                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-right-side" style="gap:6px;">${rH}</div></div>`;
+                    let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
+                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>`;
                 });
             });
         });
