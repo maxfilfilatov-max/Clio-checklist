@@ -6,12 +6,11 @@ function buildHtml(arr){
         if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:12px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;"><div>⚙️ РЕЖИМ НАСТРОЕК БАЗЫ CLIO</div><div style="display:flex;justify-content:center;gap:10px;margin-top:10px;"><button onclick="importClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📥 ИМПОРТ</button><button onclick="exportClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#10b981;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📤 ЭКСПОРТ</button></div></div>`;
         html+=`<div style="margin:12px 0 16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#fff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
     }
-    const colorMap={camera:'#2563eb',sound:'#7c3aed',support:'#dc2626',light:'#facc15',grip:'#16a34a',rental:'#d97706'};
     Object.keys(categoriesConfig).forEach(k=>{
         const inf=categoriesConfig[k];let list=arr.filter(x=>x.category===k);if(!isInv&&!list.length)return;
         if(isInv&&warehouseSearchQuery.trim()!==""){const q=warehouseSearchQuery.toLowerCase().trim();list=list.filter(i=>i.name.toLowerCase().includes(q)||i.brand.toLowerCase().includes(q)||i.subcategory.toLowerCase().includes(q)||i.section.toLowerCase().includes(q));if(!list.length)return;}
         let cPk=0,cTot=0,inner="";list.forEach(i=>{cTot+=i.count;tot+=i.count;if(i.packed){cPk+=i.count;pk+=i.count;}});
-        const isR=k==='rental',oSubs=getOrderedSubcategories(k,list),themeColor=colorMap[k]||'#52525b';
+        const isR=k==='rental',oSubs=getOrderedSubcategories(k,list);
         oSubs.forEach((sub,idx)=>{
             const subL=list.filter(x=>x.subcategory===sub);if(!subL.length)return;
             const sSt=isR?'style="color:#f59e0b;border-bottom:2px solid #5f3e0e;display:flex;justify-content:space-between;align-items:center;"':'style="display:flex;justify-content:space-between;align-items:center;"';
@@ -23,7 +22,10 @@ function buildHtml(arr){
             if(sub!=="none")inner+=`<div class="subcategory-title" ${sSt}><span>${sub}</span>${sCtrl}</div>`;
             [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
                 const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
-                inner+=`<div style="font-size:11px;font-weight:700;color:#e4e4e7;text-transform:uppercase;letter-spacing:0.5px;padding:5px 10px;margin:8px 0 4px 4px;background-color:#18181b;border-left:3px solid ${themeColor};border-radius:4px;display:inline-block;">${sec}</div>`;
+                
+                // ИСПРАВЛЕНО: Лаконичная, спокойная строчка подкатегории в стиле Apple iOS Заметок
+                inner+=`<div style="font-size:13px;font-weight:500;color:#71717a;padding:10px 0 2px 6px;display:block;letter-spacing:0.3px;">↳ ${sec}</div>`;
+                
                 secL.forEach(i=>{
                     const maxC=i.count>0?i.count:1;let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
                     if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
