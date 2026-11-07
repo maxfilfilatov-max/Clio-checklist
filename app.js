@@ -24,11 +24,13 @@ function editWarehouseItem(id) {
     const nName = prompt("Наименование:", item.name); if (nName === null) return;
     const nBrand = prompt("Описание:", item.brand); if (nBrand === null) return;
     const nCount = prompt("Количество на складе (штук):", String(item.count > 0 ? item.count : 1)); if (nCount === null) return;
-    const nSub = prompt("Подкатегория:", item.subcategory); if (nSub === null) return;
+    const nSub = prompt("Категория:", item.subcategory); if (nSub === null) return;
+    const nSec = prompt("Подкатегория:", item.section || "Разное"); if (nSec === null) return;
     if (nName.trim()) item.name = nName.trim();
     item.brand = nBrand.trim() || "Без описания";
     item.count = parseInt(nCount) || 1;
     if (nSub.trim()) item.subcategory = nSub.trim();
+    item.section = nSec.trim() || "Разное";
     if (item.selectedCount && item.selectedCount > item.count) item.selectedCount = item.count;
     saveAll(); renderAll();
 }
@@ -39,7 +41,7 @@ function changeItemCategory(id) {
     const num = parseInt(prompt(`Перенести "${item.name}" в цех (введите цифру):\n\n${menu}`));
     if (num >= 1 && num <= cats.length) {
         item.category = cats[num - 1];
-        const nSub = prompt("Подкатегория в новом цеху:", item.subcategory);
+        const nSub = prompt("Категория в новом цеху:", item.subcategory);
         if (nSub && nSub.trim()) item.subcategory = nSub.trim();
         saveAll(); renderAll();
     }
@@ -50,9 +52,14 @@ function toggleCategoryCollapse(k) { collapsedCats[k] = !collapsedCats[k]; saveA
 function handleCategoryAdd(categoryKey) {
     const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
     if (!arr) return;
+    
     const name = prompt("Наименование:"); if (!name || !name.trim()) return;
-    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Подкатегория:", "Разное").trim() || "Разное";
-    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: "" });
+    const brand = prompt("Описание:") || "Без описания";
+    const count = parseInt(prompt("Количество (штук):", "1")) || 1;
+    const subcat = prompt("Категория:", "Разное").trim() || "Разное";
+    const section = prompt("Подкатегория:", "Разное").trim() || "Разное";
+    
+    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section });
     saveAll(); renderAll();
 }
 
@@ -113,7 +120,6 @@ function deleteGlobalItem(id, e) {
     saveAll(); renderAll();
 }
 
-// ЭКСПОРТ: Собирает склад, шаблоны и порядок сортировки в один текстовый код
 function exportClioDatabase() {
     try {
         const db = { warehouse: warehouseItems, templates: templatesList, order: subcatOrder };
@@ -128,7 +134,6 @@ function exportClioDatabase() {
     } catch(e) { alert("Ошибка при экспорте: " + e.message); }
 }
 
-// ИМПОРТ: Принимает код, расшифровывает и мгновенно обновляет базу Clio
 function importClioDatabase() {
     const code = prompt("Вставьте текстовый код бэкапа базы Clio:");
     if (!code || !code.trim()) return;
