@@ -13,18 +13,24 @@ function buildHtml(arr){
         const isR=k==='rental',oSubs=getOrderedSubcategories(k,list);
         oSubs.forEach((sub,idx)=>{
             const subL=list.filter(x=>x.subcategory===sub);if(!subL.length)return;
-            const sSt=isR?'style="color:#f59e0b;border-bottom:2px solid #5f3e0e;display:flex;justify-content:space-between;align-items:center;"':'style="display:flex;justify-content:space-between;align-items:center;"';
+            
+            // ВОЗВРАЩАЕМ: Категория в виде монолитной темной скругленной плашки на всю ширину
             let sCtrl="";if(isEdit){
                 const uB=idx>0?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',-1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▲</button>`:`<span style="width:24px;display:inline-block;"></span>`;
                 const dB=idx<oSubs.length-1?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▼</button>`:`<span style="width:24px;display:inline-block;"></span>`;
-                sCtrl=`<div style="display:flex;gap:4px;">${uB}${dB}</div>`;
+                sCtrl=`<div style="display:flex;gap:4px;margin-right:8px;">${uB}${dB}</div>`;
             }
-            if(sub!=="none")inner+=`<div class="subcategory-title" ${sSt}><span>${sub}</span>${sCtrl}</div>`;
+            if(sub!=="none"){
+                const rStyle=isR?'background-color:#3a2512;color:#f59e0b;':'background-color:#18181b;color:#e4e4e7;';
+                inner+=`<div style="${rStyle}font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:10px 14px;border-radius:10px;margin:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;"><span>${sub}</span>${sCtrl}</div>`;
+            }
+            
             [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
                 const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
                 
-                // ИСПРАВЛЕНО: Лаконичная, спокойная строчка подкатегории в стиле Apple iOS Заметок
-                inner+=`<div style="font-size:13px;font-weight:500;color:#71717a;padding:10px 0 2px 6px;display:block;letter-spacing:0.3px;">↳ ${sec}</div>`;
+                // ВОЗВРАЩАЕМ: Спокойная текстовая Подкатегория с точкой (как «• ОБЪЕКТИВЫ» на вашем скриншоте)
+                const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
+                if(sec!=="Разное")inner+=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0 4px 4px;margin-top:6px;${secStyle}">• ${sec}</div>`;
                 
                 secL.forEach(i=>{
                     const maxC=i.count>0?i.count:1;let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
