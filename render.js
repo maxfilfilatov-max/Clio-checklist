@@ -13,8 +13,6 @@ function buildHtml(arr){
         const isR=k==='rental',oSubs=getOrderedSubcategories(k,list);
         oSubs.forEach((sub,idx)=>{
             const subL=list.filter(x=>x.subcategory===sub);if(!subL.length)return;
-            
-            // ВОЗВРАЩАЕМ: Категория в виде монолитной темной скругленной плашки на всю ширину
             let sCtrl="";if(isEdit){
                 const uB=idx>0?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',-1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▲</button>`:`<span style="width:24px;display:inline-block;"></span>`;
                 const dB=idx<oSubs.length-1?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▼</button>`:`<span style="width:24px;display:inline-block;"></span>`;
@@ -24,20 +22,20 @@ function buildHtml(arr){
                 const rStyle=isR?'background-color:#3a2512;color:#f59e0b;':'background-color:#18181b;color:#e4e4e7;';
                 inner+=`<div style="${rStyle}font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:10px 14px;border-radius:10px;margin:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;"><span>${sub}</span>${sCtrl}</div>`;
             }
-            
             [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
                 const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
-                
-                // ВОЗВРАЩАЕМ: Спокойная текстовая Подкатегория с точкой (как «• ОБЪЕКТИВЫ» на вашем скриншоте)
                 const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
                 if(sec!=="Разное")inner+=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0 4px 4px;margin-top:6px;${secStyle}">• ${sec}</div>`;
-                
                 secL.forEach(i=>{
                     const maxC=i.count>0?i.count:1;let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
                     if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
                     else if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
                     let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
-                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p><p class="item-brand">${i.brand}</p></div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>`;
+                    
+                    // ИСПРАВЛЕНО: Скрываем строчку, если описание пустое или равно "Без описания"
+                    const showDesc=(i.brand && i.brand!=="Без описания")?`<p class="item-brand">${i.brand}</p>`:"";
+                    
+                    inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>`;
                 });
             });
         });
