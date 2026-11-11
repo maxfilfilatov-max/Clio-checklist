@@ -27,7 +27,7 @@ function buildHtml(arr){
                 const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
                 if(sec!=="Разное"){
                     const allSec=secL.every(x=>x.packed);
-                    const bBtn=(!isTpl&&!isEdit)?`<button onclick="event.stopPropagation();toggleSectionAll('${k}','${sub.replace(/'/g,"\\'")}','${sec.replace(/'/g,"\\'")}')" style="background:${allSec?'#064e3b':'#27272a'};border:1px solid ${allSec?'#10b981':'#3f3f46'};color:${allSec?'#10b981':'#a1a1aa'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;">${allSec?'✓ Выбрано':'✓ Все'}</button>`:"";
+                    const bBtn=(!isTpl&&!isEdit)?`<button onclick="event.stopPropagation();toggleSectionAll('${k}','${sub}','${sec}')" style="background:${allSec?'#064e3b':'#27272a'};border:1px solid ${allSec?'#10b981':'#3f3f46'};color:${allSec?'#10b981':'#a1a1aa'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;">${allSec?'✓ Выбрано':'✓ Все'}</button>`:"";
                     inner+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px 4px;margin-top:6px;"><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;${secStyle}">• ${sec}</span>${bBtn}</div>`;
                 }
                 secL.forEach(i=>{
