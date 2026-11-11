@@ -25,16 +25,17 @@ function buildHtml(arr){
             [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
                 const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
                 const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
-                if(sec!=="Разное")inner+=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0 4px 4px;margin-top:6px;${secStyle}">• ${sec}</div>`;
+                if(sec!=="Разное"){
+                    const allSec=secL.every(x=>x.packed);
+                    const bBtn=(!isTpl&&!isEdit)?`<button onclick="event.stopPropagation();toggleSectionAll('${k}','${sub.replace(/'/g,"\\'")}','${sec.replace(/'/g,"\\'")}')" style="background:${allSec?'#064e3b':'#27272a'};border:1px solid ${allSec?'#10b981':'#3f3f46'};color:${allSec?'#10b981':'#a1a1aa'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;">${allSec?'✓ Выбрано':'✓ Все'}</button>`:"";
+                    inner+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px 4px;margin-top:6px;"><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;${secStyle}">• ${sec}</span>${bBtn}</div>`;
+                }
                 secL.forEach(i=>{
                     const maxC=i.count>0?i.count:1;let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
                     if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
                     else if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;
                     let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
-                    
-                    // ИСПРАВЛЕНО: Скрываем строчку, если описание пустое или равно "Без описания"
                     const showDesc=(i.brand && i.brand!=="Без описания")?`<p class="item-brand">${i.brand}</p>`:"";
-                    
                     inner+=`<div class="item-row" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>`;
                 });
             });
