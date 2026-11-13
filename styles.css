@@ -125,7 +125,6 @@ nav {
 .nav-item:active { background: #111112; box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.05); }
 .hidden { display: none !important; }
 
-/* Адаптация для планшетов (от 768px) */
 @media (min-width: 768px) {
     body { padding: 28px 24px; }
     .phone-container { max-width: 960px; }
@@ -151,7 +150,6 @@ nav {
     }
 }
 
-/* Адаптация для компьютеров и ноутбуков (от 1200px) */
 @media (min-width: 1200px) {
     .phone-container { max-width: 1320px; }
     #main-content-area { grid-template-columns: repeat(3, 1fr); }
