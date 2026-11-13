@@ -23,7 +23,6 @@ function buildHtml(arr){
             }
             if(sub!=="none"){
                 const rStyle=isR?'background-color:#3a2512;color:#f59e0b;':'background-color:#18181b;color:#e4e4e7;';
-                const safeSub=sub.replace(/'/g,"\\'");
                 inner+=`<div onclick="toggleGroupCollapse('${subKey.replace(/'/g,"\\'")}')" style="${rStyle}font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:10px 14px;border-radius:10px;margin:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><span>${sub}</span><div style="display:flex;align-items:center;">${sCtrl}<span style="color:#71717a;font-size:10px;margin-left:4px;">${isSubCol?'▶':'▼'}</span></div></div>`;
             }
             if(!isSubCol){
