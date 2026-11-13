@@ -148,7 +148,7 @@ function importShiftCode() {
             });
         }
         if (p.c && Array.isArray(p.c)) {
-            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c[0], brand: c[1], count: c[2] || 1, category: c[3], subcategory: c[4], section: c[5] || "Разное", packed: c[6] === 1, bundle: c[7] || "" }));
+            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c, brand: c, count: c || 1, category: c, subcategory: c, section: c || "Разное", packed: c === 1, bundle: c || "" }));
         }
         if (!items.length) { alert("В коде не найдено позиций."); return; }
         const existing = shiftsList.find(x => x.name.toLowerCase() === (p.n || "").toLowerCase());
@@ -213,7 +213,7 @@ function renderAll() {
     } else if (currentTab === 'shift-detail') {
         const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
         t.innerHTML = s.name; p.classList.remove("hidden");
-        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Экспорт списка</button></div></div>` + buildHtml(s.items);
+        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareCleanShiftList()" style="background:#16a34a;border:1px solid #15803d;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📄 Общий список</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Отчёт команде</button></div></div>` + buildHtml(s.items);
     } else if (currentTab === 'template-detail') {
         const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
         t.innerHTML = `Пресет: ${tpl.name}`;
