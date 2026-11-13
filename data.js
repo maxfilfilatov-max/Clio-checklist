@@ -28,6 +28,7 @@ if (localStorage.getItem('clioDbVer') === CLIO_DB_VER && localStorage.getItem('w
 let shiftsList = localStorage.getItem('shiftsList') ? JSON.parse(localStorage.getItem('shiftsList')) : [];
 let collapsedCats = localStorage.getItem('colCats') ? JSON.parse(localStorage.getItem('colCats')) : {};
 let subcatOrder = localStorage.getItem('subcatOrder') ? JSON.parse(localStorage.getItem('subcatOrder')) : {};
+let collapsedGroups = localStorage.getItem('colGroups') ? JSON.parse(localStorage.getItem('colGroups')) : {};
 
 function saveAll() {
     localStorage.setItem('whItems', JSON.stringify(warehouseItems));
@@ -35,4 +36,5 @@ function saveAll() {
     localStorage.setItem('colCats', JSON.stringify(collapsedCats));
     localStorage.setItem('whTemplates', JSON.stringify(templatesList));
     localStorage.setItem('subcatOrder', JSON.stringify(subcatOrder));
+    localStorage.setItem('colGroups', JSON.stringify(collapsedGroups));
 }
