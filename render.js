@@ -1,19 +1,21 @@
 let warehouseSearchQuery="",expandedBundles={};
 function toggleItemBundle(id){expandedBundles[id]=!expandedBundles[id];renderAll();}
+function toggleGroupCollapse(key){collapsedGroups[key]=!collapsedGroups[key];saveAll();renderAll();}
 function getOrderedSubcategories(k,l){const r=[...new Set(l.map(x=>x.subcategory))],s=subcatOrder[k]||[],o=s.filter(x=>r.includes(x));r.forEach(x=>{if(!o.includes(x))o.push(x);});subcatOrder[k]=o;return o;}
 function buildHtml(arr){
-    let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode;
+    let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode,isSearch=isInv&&warehouseSearchQuery.trim()!=="";
     if(isInv){
         if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:12px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;"><div>⚙️ РЕЖИМ НАСТРОЕК БАЗЫ CLIO</div><div style="display:flex;justify-content:center;gap:10px;margin-top:10px;"><button onclick="importClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📥 ИМПОРТ</button><button onclick="exportClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#10b981;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📤 ЭКСПОРТ</button></div></div>`;
         html+=`<div style="margin:12px 0 16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#fff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
     }
     Object.keys(categoriesConfig).forEach(k=>{
         const inf=categoriesConfig[k];let list=arr.filter(x=>x.category===k);if(!isInv&&!list.length)return;
-        if(isInv&&warehouseSearchQuery.trim()!==""){const q=warehouseSearchQuery.toLowerCase().trim();list=list.filter(i=>i.name.toLowerCase().includes(q)||i.brand.toLowerCase().includes(q)||i.subcategory.toLowerCase().includes(q)||i.section.toLowerCase().includes(q)||(i.bundle&&i.bundle.toLowerCase().includes(q)));if(!list.length)return;}
+        if(isSearch){const q=warehouseSearchQuery.toLowerCase().trim();list=list.filter(i=>i.name.toLowerCase().includes(q)||i.brand.toLowerCase().includes(q)||i.subcategory.toLowerCase().includes(q)||i.section.toLowerCase().includes(q)||(i.bundle&&i.bundle.toLowerCase().includes(q)));if(!list.length)return;}
         let cPk=0,cTot=0,inner="";list.forEach(i=>{cTot+=i.count;tot+=i.count;if(i.packed){cPk+=i.count;pk+=i.count;}});
         const isR=k==='rental',oSubs=getOrderedSubcategories(k,list);
         oSubs.forEach((sub,idx)=>{
             const subL=list.filter(x=>x.subcategory===sub);if(!subL.length)return;
+            const subKey=`sub_${k}_${sub}`,isSubCol=!isSearch&&!!collapsedGroups[subKey];
             let sCtrl="";if(isEdit){
                 const uB=idx>0?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',-1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▲</button>`:`<span style="width:24px;display:inline-block;"></span>`;
                 const dB=idx<oSubs.length-1?`<button onclick="event.stopPropagation();moveSubcategory('${k}','${sub}',1)" style="background:#3f3f46;border:none;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;">▼</button>`:`<span style="width:24px;display:inline-block;"></span>`;
@@ -21,24 +23,32 @@ function buildHtml(arr){
             }
             if(sub!=="none"){
                 const rStyle=isR?'background-color:#3a2512;color:#f59e0b;':'background-color:#18181b;color:#e4e4e7;';
-                inner+=`<div style="${rStyle}font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:10px 14px;border-radius:10px;margin:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;"><span>${sub}</span>${sCtrl}</div>`;
+                const safeSub=sub.replace(/'/g,"\\'");
+                inner+=`<div onclick="toggleGroupCollapse('${subKey.replace(/'/g,"\\'")}')" style="${rStyle}font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:10px 14px;border-radius:10px;margin:16px 0 8px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><span>${sub}</span><div style="display:flex;align-items:center;">${sCtrl}<span style="color:#71717a;font-size:10px;margin-left:4px;">${isSubCol?'▶':'▼'}</span></div></div>`;
             }
-            [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
-                const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
-                const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
-                if(sec!=="Разное")inner+=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0 4px 4px;margin-top:6px;${secStyle}">• ${sec}</div>`;
-                secL.forEach(i=>{
-                    const maxC=i.count>0?i.count:1,hasB=i.bundle&&i.bundle.trim()!=="",isExp=!!expandedBundles[i.id];
-                    const bBtn=hasB?`<button onclick="event.stopPropagation();toggleItemBundle(${i.id})" style="background:${isExp?'#27272a':'#18181b'};border:1px solid ${isExp?'#52525b':'#2e2e32'};color:${isExp?'#fff':'#a1a1aa'};border-radius:6px;padding:3px 7px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Состав ${isExp?'▴':'▾'}</button>`:"";
-                    let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
-                    if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
-                    else{rH=bBtn+rH;if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;}
-                    let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
-                    const showDesc=(i.brand && i.brand!=="Без описания")?`<p class="item-brand">${i.brand}</p>`:"";
-                    const bBox=(hasB&&isExp)?`<div style="background:#141416;border-left:2px solid ${isR?'#d97706':'#3f3f46'};border-radius:0 8px 8px 0;padding:8px 12px;margin:-4px 0 10px ${hC?'2px':'38px'};font-size:12px;color:#a1a1aa;line-height:1.5;">${i.bundle.split(',').map(x=>`<div>• ${x.trim()}</div>`).join('')}</div>`:"";
-                    inner+=`<div class="item-row" style="${hasB&&isExp?'border-bottom:none;padding-bottom:8px;':''}" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>${bBox}`;
+            if(!isSubCol){
+                [...new Set(subL.map(x=>x.section || "Разное"))].forEach(sec=>{
+                    const secL=subL.filter(x=>x.section===sec || (!x.section && sec==="Разное"));if(!secL.length)return;
+                    const secKey=`sec_${k}_${sub}_${sec}`,isSecCol=!isSearch&&!!collapsedGroups[secKey];
+                    const secStyle=isR?'color:#f59e0b;':'color:#a1a1aa;';
+                    if(sec!=="Разное"){
+                        inner+=`<div onclick="toggleGroupCollapse('${secKey.replace(/'/g,"\\'")}')" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:6px 4px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;${secStyle}"><span>• ${sec}</span><span style="color:#71717a;font-size:9px;">${isSecCol?'▶':'▼'}</span></div>`;
+                    }
+                    if(!isSecCol){
+                        secL.forEach(i=>{
+                            const maxC=i.count>0?i.count:1,hasB=i.bundle&&i.bundle.trim()!=="",isExp=!!expandedBundles[i.id];
+                            const bBtn=hasB?`<button onclick="event.stopPropagation();toggleItemBundle(${i.id})" style="background:${isExp?'#27272a':'#18181b'};border:1px solid ${isExp?'#52525b':'#2e2e32'};color:${isExp?'#fff':'#a1a1aa'};border-radius:6px;padding:3px 7px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Состав ${isExp?'▴':'▾'}</button>`:"";
+                            let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
+                            if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
+                            else{rH=bBtn+rH;if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;}
+                            let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
+                            const showDesc=(i.brand && i.brand!=="Без описания")?`<p class="item-brand">${i.brand}</p>`:"";
+                            const bBox=(hasB&&isExp)?`<div style="background:#141416;border-left:2px solid ${isR?'#d97706':'#3f3f46'};border-radius:0 8px 8px 0;padding:8px 12px;margin:-4px 0 10px ${hC?'2px':'38px'};font-size:12px;color:#a1a1aa;line-height:1.5;">${i.bundle.split(',').map(x=>`<div>• ${x.trim()}</div>`).join('')}</div>`:"";
+                            inner+=`<div class="item-row" style="${hasB&&isExp?'border-bottom:none;padding-bottom:8px;':''}" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>${bBox}`;
+                        });
+                    }
                 });
-            });
+            }
         });
         if(isInv&&!list.length)inner=`<div style="padding:15px;color:#71717a;text-align:center;">Пусто</div>`;
         const hCnt=isInv?`${list.filter(x=>x.packed).length}/${list.length}`:`${cPk}/${cTot}`;
