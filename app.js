@@ -26,11 +26,13 @@ function editWarehouseItem(id) {
     const nCount = prompt("Количество на складе (штук):", String(item.count > 0 ? item.count : 1)); if (nCount === null) return;
     const nSub = prompt("Категория:", item.subcategory); if (nSub === null) return;
     const nSec = prompt("Подкатегория:", item.section || "Разное"); if (nSec === null) return;
+    const nBundle = prompt("Состав комплекта (через запятую, если это набор):", item.bundle || ""); if (nBundle === null) return;
     if (nName.trim()) item.name = nName.trim();
     item.brand = nBrand.trim() || "Без описания";
     item.count = parseInt(nCount) || 1;
     if (nSub.trim()) item.subcategory = nSub.trim();
     item.section = nSec.trim() || "Разное";
+    item.bundle = nBundle.trim();
     if (item.selectedCount && item.selectedCount > item.count) item.selectedCount = item.count;
     saveAll(); renderAll();
 }
@@ -53,8 +55,8 @@ function handleCategoryAdd(categoryKey) {
     const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
     if (!arr) return;
     const name = prompt("Наименование:"); if (!name || !name.trim()) return;
-    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное";
-    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section });
+    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное", bundle = (prompt("Состав комплекта (через запятую — или оставьте пустым):") || "").trim();
+    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: bundle });
     saveAll(); renderAll();
 }
 
