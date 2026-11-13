@@ -117,17 +117,63 @@ function deleteGlobalItem(id, e) {
     saveAll(); renderAll();
 }
 
+function exportShiftCode() {
+    const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
+    const refs = [], custom = [];
+    s.items.forEach(i => {
+        const base = warehouseItems.find(w => w.name === i.name && w.category === i.category);
+        if (base) refs.push(`${base.id}:${i.count}:${i.packed ? 1 : 0}`);
+        else custom.push([i.name, i.brand, i.count, i.category, i.subcategory, i.section || "Разное", i.packed ? 1 : 0, i.bundle || ""]);
+    });
+    const payload = { n: s.name, d: s.date, r: refs.join(',') };
+    if (custom.length) payload.c = custom;
+    const code = "CLIOS:" + btoa(encodeURIComponent(JSON.stringify(payload)));
+    if (navigator.share) navigator.share({ title: `Смена: ${s.name}`, text: code }).catch(e => console.log(e));
+    else { navigator.clipboard.writeText(code); alert("Короткий код смены скопирован! Отправьте его в Telegram."); }
+}
+
+function importShiftCode() {
+    const raw = prompt("Вставьте короткий код смены (начинается с CLIOS:...):");
+    if (!raw || !raw.trim()) return;
+    try {
+        const clean = raw.trim().replace(/^CLIOS:/, '');
+        const p = JSON.parse(decodeURIComponent(atob(clean)));
+        const items = [];
+        if (p.r) {
+            p.r.split(',').forEach(entry => {
+                if (!entry) return;
+                const [idStr, cntStr, pkStr] = entry.split(':');
+                const base = warehouseItems.find(w => w.id === parseInt(idStr));
+                if (base) items.push({ ...base, id: Date.now() + Math.random(), count: parseInt(cntStr) || 1, packed: pkStr === '1' });
+            });
+        }
+        if (p.c && Array.isArray(p.c)) {
+            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c[0], brand: c[1], count: c[2] || 1, category: c[3], subcategory: c[4], section: c[5] || "Разное", packed: c[6] === 1, bundle: c[7] || "" }));
+        }
+        if (!items.length) { alert("В коде не найдено позиций."); return; }
+        const existing = shiftsList.find(x => x.name.toLowerCase() === (p.n || "").toLowerCase());
+        if (existing && confirm(`Смена "${existing.name}" уже есть у вас.\n\nНажмите ОК — чтобы ОБЪЕДИНИТЬ приборы в одну общую смену.\nНажмите Отмена — чтобы создать отдельную смену.`)) {
+            items.forEach(ni => {
+                const dup = existing.items.find(ei => ei.name === ni.name && ei.category === ni.category);
+                if (dup) dup.count += ni.count;
+                else existing.items.push(ni);
+            });
+            saveAll(); currentTab = 'shift-detail'; activeShiftId = existing.id; renderAll();
+            alert(`Приборы добавлены в смену "${existing.name}"!`);
+        } else {
+            const newId = Date.now();
+            shiftsList.push({ id: newId, name: p.n || "Общая смена", date: p.d || "", items });
+            saveAll(); currentTab = 'shift-detail'; activeShiftId = newId; renderAll();
+            alert(`Смена "${p.n}" успешно загружена!`);
+        }
+    } catch(e) { alert("Ошибка загрузки смены! Проверьте, что код скопирован целиком."); }
+}
 function exportClioDatabase() {
     try {
         const db = { warehouse: warehouseItems, templates: templatesList, order: subcatOrder };
-        const jsonStr = JSON.stringify(db);
-        const encoded = btoa(encodeURIComponent(jsonStr));
-        if (navigator.share) {
-            navigator.share({ title: 'Clio Base Backup', text: encoded }).catch(e => console.log(e));
-        } else {
-            navigator.clipboard.writeText(encoded);
-            alert("Код бэкапа скопирован в буфер обмена! Перешлите его в Telegram.");
-        }
+        const encoded = btoa(encodeURIComponent(JSON.stringify(db)));
+        if (navigator.share) navigator.share({ title: 'Clio Base Backup', text: encoded }).catch(e => console.log(e));
+        else { navigator.clipboard.writeText(encoded); alert("Код бэкапа скопирован в буфер обмена!"); }
     } catch(e) { alert("Ошибка при экспорте: " + e.message); }
 }
 
@@ -135,8 +181,7 @@ function importClioDatabase() {
     const code = prompt("Вставьте текстовый код бэкапа базы Clio:");
     if (!code || !code.trim()) return;
     try {
-        const decodedStr = decodeURIComponent(atob(code.trim()));
-        const db = JSON.parse(decodedStr);
+        const db = JSON.parse(decodeURIComponent(atob(code.trim())));
         if (db.warehouse && Array.isArray(db.warehouse)) {
             if (confirm("Внимание! Импорт полностью заменит текущий Склад и Шаблоны. Продолжить?")) {
                 warehouseItems = db.warehouse;
@@ -154,8 +199,9 @@ function renderAll() {
     p.classList.add("hidden"); hr.innerHTML = "";
     if (currentTab === 'shifts') {
         t.innerHTML = "Смены";
-        if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Сформируйте смену на Складе.</div>`; return; }
-        c.innerHTML = shiftsList.map(s => `<div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();"><div style="font-size:17px;font-weight:600;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><span>${s.name}</span><span style="color:#71717a;font-size:14px;">▶</span></div><div style="height:1px;background:#27272a;margin-bottom:10px;width:100%;"></div><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:13px;color:#a1a1aa;">📅 ${s.date}</span><span style="font-size:12px;color:#10b981;font-weight:500;">Собрано: ${s.items.reduce((a, i) => a + (i.packed ? i.count : 0), 0)}/${s.items.reduce((a, i) => a + i.count, 0)}</span></div><div style="display:flex;align-items:center;gap:12px;"><button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:6px;background:#27272a;border-radius:6px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button><button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить смену?')){deleteGlobalItem(${s.id},event)}">Удалить</button></div></div></div>`).join('');
+        const importBtn = `<button onclick="importShiftCode()" class="big-green-btn" style="background-color:#27272a;border:1px solid #3f3f46;color:#60a5fa;">📥 Загрузить смену</button>`;
+        if (!shiftsList.length) { c.innerHTML = `<div class="empty-text">Список смен пуст. Сформируйте смену на Складе или загрузите по коду от коллеги.</div>` + importBtn; return; }
+        c.innerHTML = shiftsList.map(s => `<div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='shift-detail';activeShiftId=${s.id};renderAll();"><div style="font-size:17px;font-weight:600;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><span>${s.name}</span><span style="color:#71717a;font-size:14px;">▶</span></div><div style="height:1px;background:#27272a;margin-bottom:10px;width:100%;"></div><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:13px;color:#a1a1aa;">📅 ${s.date}</span><span style="font-size:12px;color:#10b981;font-weight:500;">Собрано: ${s.items.reduce((a, i) => a + (i.packed ? i.count : 0), 0)}/${s.items.reduce((a, i) => a + i.count, 0)}</span></div><div style="display:flex;align-items:center;gap:12px;"><button class="subtle-delete" style="color:#3b82f6;font-size:16px;padding:6px;background:#27272a;border-radius:6px;" onclick="saveShiftAsTemplate(${s.id},event)">📋</button><button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить смену?')){deleteGlobalItem(${s.id},event)}">Удалить</button></div></div></div>`).join('') + importBtn;
     } else if (currentTab === 'inventory') {
         t.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;"><span>ТЕХНИЧЕСКАЯ БАЗА CLIO</span><span style="font-size:13px;color:#71717a;font-weight:400;text-transform:none;letter-spacing:0px;">Max equipment checklist</span></div>`;
         const gSt = isWarehouseEditMode ? "background:#d97706;color:#000;border:1px solid #f59e0b;" : "background:#1c1c1e;color:#fff;border:1px solid #27272a;";
@@ -167,7 +213,7 @@ function renderAll() {
     } else if (currentTab === 'shift-detail') {
         const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
         t.innerHTML = s.name; p.classList.remove("hidden");
-        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Экспорт списка</button></div>` + buildHtml(s.items);
+        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Экспорт списка</button></div></div>` + buildHtml(s.items);
     } else if (currentTab === 'template-detail') {
         const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
         t.innerHTML = `Пресет: ${tpl.name}`;
