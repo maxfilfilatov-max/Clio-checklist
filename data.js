@@ -136,7 +136,7 @@ const defaultClioWarehouse = [
 {"id":132,"name":"SmallRig NP-F970","brand":"Без описания","count":2,"packed":false,"category":"rental","subcategory":"Питание","section":"NP-F аккумуляторы","url":"https://delight.rent"}
 ];
 
-const CLIO_DB_VER = "2026_11_18_v4";
+const CLIO_DB_VER = "2026_11_18_v5";
 let templatesList = localStorage.getItem('whTemplates') ? JSON.parse(localStorage.getItem('whTemplates')) : [];
 let warehouseItems = [];
 if (localStorage.getItem('clioDbVer') === CLIO_DB_VER && localStorage.getItem('whItems')) {
