@@ -27,12 +27,14 @@ function editWarehouseItem(id) {
     const nSub = prompt("Категория:", item.subcategory); if (nSub === null) return;
     const nSec = prompt("Подкатегория:", item.section || "Разное"); if (nSec === null) return;
     const nBundle = prompt("Состав комплекта (через запятую, если это набор):", item.bundle || ""); if (nBundle === null) return;
+    const nUrl = prompt("Ссылка на карточку товара в рентале (или оставьте пустым):", item.url || ""); if (nUrl === null) return;
     if (nName.trim()) item.name = nName.trim();
     item.brand = nBrand.trim() || "Без описания";
     item.count = parseInt(nCount) || 1;
     if (nSub.trim()) item.subcategory = nSub.trim();
     item.section = nSec.trim() || "Разное";
     item.bundle = nBundle.trim();
+    item.url = nUrl.trim();
     if (item.selectedCount && item.selectedCount > item.count) item.selectedCount = item.count;
     saveAll(); renderAll();
 }
@@ -55,8 +57,8 @@ function handleCategoryAdd(categoryKey) {
     const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
     if (!arr) return;
     const name = prompt("Наименование:"); if (!name || !name.trim()) return;
-    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное", bundle = (prompt("Состав комплекта (через запятую — или оставьте пустым):") || "").trim();
-    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: bundle });
+    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное", bundle = (prompt("Состав комплекта (через запятую — или оставьте пустым):") || "").trim(), url = (prompt("Ссылка на карточку товара в рентале (или оставьте пустым):") || "").trim();
+    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: bundle, url: url });
     saveAll(); renderAll();
 }
 
@@ -123,7 +125,7 @@ function exportShiftCode() {
     s.items.forEach(i => {
         const base = warehouseItems.find(w => w.name === i.name && w.category === i.category);
         if (base) refs.push(`${base.id}:${i.count}:${i.packed ? 1 : 0}`);
-        else custom.push([i.name, i.brand, i.count, i.category, i.subcategory, i.section || "Разное", i.packed ? 1 : 0, i.bundle || ""]);
+        else custom.push([i.name, i.brand, i.count, i.category, i.subcategory, i.section || "Разное", i.packed ? 1 : 0, i.bundle || "", i.url || ""]);
     });
     const payload = { n: s.name, d: s.date, r: refs.join(',') };
     if (custom.length) payload.c = custom;
@@ -148,7 +150,7 @@ function importShiftCode() {
             });
         }
         if (p.c && Array.isArray(p.c)) {
-            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c, brand: c, count: c || 1, category: c, subcategory: c, section: c || "Разное", packed: c === 1, bundle: c || "" }));
+            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c[0], brand: c[1], count: c[2] || 1, category: c[3], subcategory: c[4], section: c[5] || "Разное", packed: c[6] === 1, bundle: c[7] || "", url: c[8] || "" }));
         }
         if (!items.length) { alert("В коде не найдено позиций."); return; }
         const existing = shiftsList.find(x => x.name.toLowerCase() === (p.n || "").toLowerCase());
