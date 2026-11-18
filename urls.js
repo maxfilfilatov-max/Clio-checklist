@@ -1,48 +1,53 @@
-const rentalUrlsMap = {
-    97: "https://delight.rent",
-    98: "https://delight.rent",
-    99: "https://delight.rent",
-    100: "https://delight.rent",
-    101: "https://delight.rent",
-    102: "https://delight.rent",
-    103: "https://delight.rent",
-    104: "https://delight.rent",
-    105: "https://delight.rent",
-    106: "https://delight.rent",
-    107: "https://delight.rent",
-    108: "https://delight.rent",
-    109: "https://delight.rent",
-    110: "https://delight.rent",
-    111: "https://delight.rent",
-    112: "https://delight.rent",
-    113: "https://delight.rent",
-    114: "https://delight.rent",
-    115: "https://delight.rent",
-    116: "https://delight.rent",
-    117: "https://delight.rent",
-    118: "https://delight.rent",
-    119: "https://delight.rent",
-    120: "https://delight.rent",
-    121: "https://delight.rent",
-    122: "https://delight.rent",
-    123: "https://delight.rent",
-    124: "https://delight.rent",
-    125: "https://delight.rent",
-    126: "https://delight.rent",
-    127: "https://delight.rent",
-    128: "https://delight.rent",
-    129: "https://delight.rent",
-    130: "https://delight.rent",
-    131: "https://delight.rent",
-    132: "https://delight.rent"
+const rentalUrlsByName = {
+    "Panasonic S5": "https://delight.rent",
+    "Panasonic S5II": "https://delight.rent",
+    "Panasonic S5IIX": "https://delight.rent",
+    "Sony FX3": "https://delight.rent",
+    "Sony FX30": "https://delight.rent",
+    "Blackmagic 6K EF": "https://delight.rent",
+    "DJI Osmo Pocket 4P": "https://delight.rent",
+    "Объектив Laowa 24mm F14 Cine": "https://delight.rent",
+    "Адаптер PL-E": "https://delight.rent",
+    "Адаптер Sigma MC-21 EF-L": "https://delight.rent",
+    "Комплект VND фильтров для DJI Osmo Pocket 4P": "https://delight.rent",
+    "Клетка для Sony FX3/FX30": "https://delight.rent",
+    "Сетевой адаптер NP-FZ100": "https://delight.rent",
+    "HDMI кабель 5м": "https://delight.rent",
+    "Монитор FeelWorld LUT 11S": "https://delight.rent",
+    "Монитор Liliput A11": "https://delight.rent",
+    "Монитор Liliput BM150": "https://delight.rent",
+    "Суфлер Desview Telepromter": "https://delight.rent",
+    "Amaran Halo 600X": "https://delight.rent",
+    "Amaran 300C": "https://delight.rent",
+    "Aputure Accent B7C": "https://delight.rent",
+    "Spotlight": "https://delight.rent",
+    "Фрост рама разборная 122x122": "https://delight.rent",
+    "Фрост рама разборная 100x100": "https://delight.rent",
+    "Складная рама Avenger 8x8": "https://delight.rent",
+    "Текстиль Silk 1/4 8x8": "https://delight.rent",
+    "Текстиль 1/2 8x8": "https://delight.rent",
+    "Флаг Avenger 60x90cm": "https://delight.rent",
+    "C-Stand 40”": "https://delight.rent",
+    "Стойка Avenger A100": "https://delight.rent",
+    "Стойка Avenger Overhead": "https://delight.rent",
+    "Junior Boom Avenger D650": "https://delight.rent",
+    "Сэндбэг": "https://delight.rent",
+    "Тележка": "https://delight.rent",
+    "Интеркомы": "https://delight.rent",
+    "Дым-машина": "https://delight.rent",
+    "Удлинитель 50м": "https://delight.rent",
+    "SmallRig NP-F970": "https://delight.rent"
 };
 
 if (typeof warehouseItems !== 'undefined') {
     warehouseItems.forEach(item => {
-        if (item.id === 97 && item.name === "Panasonic S5") item.name = "Panasonic S5II";
-        if (item.id === 118) item.name = "Фрост рама разборная 100x100";
-        if (rentalUrlsMap[item.id] && (!item.url || item.url === "https://delight.rent")) {
-            item.url = rentalUrlsMap[item.id];
+        if (item.category === 'rental') {
+            const cleanName = item.name.trim();
+            if (rentalUrlsByName[cleanName] && (!item.url || item.url.trim().length <= 25)) {
+                item.url = rentalUrlsByName[cleanName];
+            }
+            if (cleanName === "Panasonic S5") item.name = "Panasonic S5II";
+            if (cleanName === "Фрост рама разборная 122x122") item.name = "Фрост рама разборная 100x100";
         }
     });
     if (typeof saveAll === 'function') saveAll();
