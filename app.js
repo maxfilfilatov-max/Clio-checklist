@@ -150,7 +150,7 @@ function importShiftCode() {
             });
         }
         if (p.c && Array.isArray(p.c)) {
-            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c[0], brand: c[1], count: c[2] || 1, category: c[3], subcategory: c[4], section: c[5] || "Разное", packed: c[6] === 1, bundle: c[7] || "", url: c[8] || "" }));
+            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c, brand: c, count: c || 1, category: c, subcategory: c, section: c || "Разное", packed: c === 1, bundle: c || "", url: c || "" }));
         }
         if (!items.length) { alert("В коде не найдено позиций."); return; }
         const existing = shiftsList.find(x => x.name.toLowerCase() === (p.n || "").toLowerCase());
