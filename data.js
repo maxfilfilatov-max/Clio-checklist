@@ -98,7 +98,7 @@ const defaultClioWarehouse = [
 {"id":94,"name":"Прищепки","brand":"Без описания","count":6,"packed":false,"category":"grip","subcategory":"Грип","section":"Крепления и зажимы"},
 {"id":95,"name":"Поворотный адаптер для света","brand":"Должен быть с пальцем!","count":2,"packed":false,"category":"grip","subcategory":"Грип","section":"Адаптеры и переходники"},
 {"id":96,"name":"Сэндбэг","brand":"Без описания","count":5,"packed":false,"category":"grip","subcategory":"Грип","section":"Утяжелители и балласт"},
-{"id":97,"name":"Panasonic S5II","brand":"Всегда проверять!","count":1,"packed":false,"category":"rental","subcategory":"Камеры","section":"Разное","url":"https://delight.rent"},
+{"id":97,"name":"Panasonic S5II","brand":"Всегда проверять!","count":1,"packed":false,"category":"rental","subcategory":"Камеры","section":"Разное","url":"https://www.delight.rent/rent/kamery-panasonic/kamera_panasonic_lumix_dc_s5_ii_body/"},
 {"id":98,"name":"Panasonic S5IIX","brand":"Всегда проверять!","count":1,"packed":false,"category":"rental","subcategory":"Камеры","section":"Разное","url":"https://delight.rent"},
 {"id":99,"name":"Sony FX3","brand":"Всегда проверять!","count":2,"packed":false,"category":"rental","subcategory":"Камеры","section":"Разное","url":"https://delight.rent"},
 {"id":100,"name":"Sony FX30","brand":"Всегда проверять!","count":2,"packed":false,"category":"rental","subcategory":"Камеры","section":"Разное","url":"https://delight.rent"},
