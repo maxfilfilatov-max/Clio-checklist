@@ -9,6 +9,36 @@ function switchTab(t) {
 
 function toggleWarehouseEdit() { isWarehouseEditMode = !isWarehouseEditMode; renderAll(); }
 
+function changeShiftDays(shiftId, delta) {
+    const s = shiftsList.find(x => x.id === shiftId); if (!s) return;
+    s.days = Math.max(1, (s.days || 1) + delta);
+    saveAll(); renderAll();
+}
+
+function changeShiftDiscount(shiftId) {
+    const s = shiftsList.find(x => x.id === shiftId); if (!s) return;
+    const ans = prompt("Укажите скидку рентала в процентах (например: 10 или 15):", String(s.discount || 0));
+    if (ans === null) return;
+    const val = parseFloat(ans.replace(',', '.'));
+    s.discount = (!isNaN(val) && val >= 0 && val <= 100) ? val : 0;
+    saveAll(); renderAll();
+}
+
+function editShiftItemPrice(itemId) {
+    const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
+    const item = s.items.find(x => x.id === itemId); if (!item) return;
+    const curPrice = getItemUnitPrice(item);
+    const baseItem = warehouseItems.find(w => w.name === item.name && w.category === item.category);
+    const basePrice = item.origPrice !== undefined ? item.origPrice : (baseItem ? getItemUnitPrice(baseItem) : curPrice);
+    if (item.origPrice === undefined) item.origPrice = basePrice;
+    const hint = basePrice > 0 ? `\n(Базовая цена на Складе: ${formatRub(basePrice)})` : "";
+    const ans = prompt(`Цена за 1 смену для "${item.name}" в этой смене (введите 0, чтобы отдать бесплатно):${hint}`, String(curPrice));
+    if (ans === null) return;
+    const val = parseFloat(ans.replace(',', '.'));
+    item.price = (!isNaN(val) && val >= 0) ? val : 0;
+    saveAll(); renderAll();
+}
+
 function moveSubcategory(catKey, subName, dir) {
     const list = warehouseItems.filter(x => x.category === catKey);
     const order = getOrderedSubcategories(catKey, list), idx = order.indexOf(subName);
@@ -28,6 +58,7 @@ function editWarehouseItem(id) {
     const nSec = prompt("Подкатегория:", item.section || "Разное"); if (nSec === null) return;
     const nBundle = prompt("Состав комплекта (через запятую, если это набор):", item.bundle || ""); if (nBundle === null) return;
     const nUrl = prompt("Ссылка на карточку товара в рентале (или оставьте пустым):", item.url || ""); if (nUrl === null) return;
+    const nPrice = prompt("Цена аренды за 1 смену в ₽ (0 — если не учитывать):", String(getItemUnitPrice(item))); if (nPrice === null) return;
     if (nName.trim()) item.name = nName.trim();
     item.brand = nBrand.trim() || "Без описания";
     item.count = parseInt(nCount) || 1;
@@ -35,6 +66,7 @@ function editWarehouseItem(id) {
     item.section = nSec.trim() || "Разное";
     item.bundle = nBundle.trim();
     item.url = nUrl.trim();
+    item.price = parseFloat(nPrice.replace(',', '.')) || 0;
     if (item.selectedCount && item.selectedCount > item.count) item.selectedCount = item.count;
     saveAll(); renderAll();
 }
@@ -57,15 +89,15 @@ function handleCategoryAdd(categoryKey) {
     const arr = (currentTab === 'inventory') ? warehouseItems : (currentTab === 'shift-detail') ? shiftsList.find(s => s.id === activeShiftId)?.items : templatesList.find(t => t.id === activeTemplateId)?.items;
     if (!arr) return;
     const name = prompt("Наименование:"); if (!name || !name.trim()) return;
-    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное", bundle = (prompt("Состав комплекта (через запятую — или оставьте пустым):") || "").trim(), url = (prompt("Ссылка на карточку товара в рентале (или оставьте пустым):") || "").trim();
-    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: bundle, url: url });
+    const brand = prompt("Описание:") || "Без описания", count = parseInt(prompt("Количество (штук):", "1")) || 1, subcat = prompt("Категория:", "Разное").trim() || "Разное", section = prompt("Подкатегория:", "Разное").trim() || "Разное", bundle = (prompt("Состав комплекта (через запятую — или оставьте пустым):") || "").trim(), url = (prompt("Ссылка на карточку товара в рентале (или оставьте пустым):") || "").trim(), price = parseFloat((prompt("Цена за 1 смену в ₽ (0 — если без цены):", "0") || "0").replace(',', '.')) || 0;
+    arr.push({ id: Date.now(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: bundle, url: url, price: price, origPrice: price });
     saveAll(); renderAll();
 }
 
 function createShiftFromTemplate(tplId) {
     const tpl = templatesList.find(t => t.id === tplId); if (!tpl) return;
     const name = prompt("Название смены:"); if (!name || !name.trim()) return;
-    shiftsList.push({ id: Date.now(), name: name.trim(), date: prompt("Дата смены:", new Date().toLocaleDateString('ru-RU')) || "", items: tpl.items.map(i => ({ ...i, id: Date.now() + Math.random(), packed: false, count: i.count > 0 ? i.count : 1 })) });
+    shiftsList.push({ id: Date.now(), name: name.trim(), date: prompt("Дата смены:", new Date().toLocaleDateString('ru-RU')) || "", days: 1, discount: 0, items: tpl.items.map(i => { const base = warehouseItems.find(w => w.name === i.name && w.category === i.category); const pr = base ? getItemUnitPrice(base) : getItemUnitPrice(i); return { ...i, id: Date.now() + Math.random(), packed: false, count: i.count > 0 ? i.count : 1, price: pr, origPrice: pr }; }) });
     saveAll(); switchTab('shifts');
 }
 function saveShiftAsTemplate(shiftId, e) {
@@ -124,10 +156,11 @@ function exportShiftCode() {
     const refs = [], custom = [];
     s.items.forEach(i => {
         const base = warehouseItems.find(w => w.name === i.name && w.category === i.category);
-        if (base) refs.push(`${base.id}:${i.count}:${i.packed ? 1 : 0}`);
-        else custom.push([i.name, i.brand, i.count, i.category, i.subcategory, i.section || "Разное", i.packed ? 1 : 0, i.bundle || "", i.url || ""]);
+        const pr = getItemUnitPrice(i);
+        if (base) refs.push(`${base.id}:${i.count}:${i.packed ? 1 : 0}:${pr}`);
+        else custom.push([i.name, i.brand, i.count, i.category, i.subcategory, i.section || "Разное", i.packed ? 1 : 0, i.bundle || "", i.url || "", pr]);
     });
-    const payload = { n: s.name, d: s.date, r: refs.join(',') };
+    const payload = { n: s.name, d: s.date, dy: s.days || 1, ds: s.discount || 0, r: refs.join(',') };
     if (custom.length) payload.c = custom;
     const code = "CLIOS:" + btoa(encodeURIComponent(JSON.stringify(payload)));
     if (navigator.share) navigator.share({ title: `Смена: ${s.name}`, text: code }).catch(e => console.log(e));
@@ -144,13 +177,17 @@ function importShiftCode() {
         if (p.r) {
             p.r.split(',').forEach(entry => {
                 if (!entry) return;
-                const [idStr, cntStr, pkStr] = entry.split(':');
+                const [idStr, cntStr, pkStr, prStr] = entry.split(':');
                 const base = warehouseItems.find(w => w.id === parseInt(idStr));
-                if (base) items.push({ ...base, id: Date.now() + Math.random(), count: parseInt(cntStr) || 1, packed: pkStr === '1' });
+                if (base) {
+                    const basePr = getItemUnitPrice(base);
+                    const finalPr = prStr !== undefined ? (parseFloat(prStr) || 0) : basePr;
+                    items.push({ ...base, id: Date.now() + Math.random(), count: parseInt(cntStr) || 1, packed: pkStr === '1', price: finalPr, origPrice: basePr });
+                }
             });
         }
         if (p.c && Array.isArray(p.c)) {
-            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c, brand: c, count: c || 1, category: c, subcategory: c, section: c || "Разное", packed: c === 1, bundle: c || "", url: c || "" }));
+            p.c.forEach(c => items.push({ id: Date.now() + Math.random(), name: c, brand: c, count: c || 1, category: c, subcategory: c, section: c || "Разное", packed: c === 1, bundle: c || "", url: c || "", price: c || 0, origPrice: c || 0 }));
         }
         if (!items.length) { alert("В коде не найдено позиций."); return; }
         const existing = shiftsList.find(x => x.name.toLowerCase() === (p.n || "").toLowerCase());
@@ -164,7 +201,7 @@ function importShiftCode() {
             alert(`Приборы добавлены в смену "${existing.name}"!`);
         } else {
             const newId = Date.now();
-            shiftsList.push({ id: newId, name: p.n || "Общая смена", date: p.d || "", items });
+            shiftsList.push({ id: newId, name: p.n || "Общая смена", date: p.d || "", days: p.dy || 1, discount: p.ds || 0, items });
             saveAll(); currentTab = 'shift-detail'; activeShiftId = newId; renderAll();
             alert(`Смена "${p.n}" успешно загружена!`);
         }
@@ -215,7 +252,7 @@ function renderAll() {
     } else if (currentTab === 'shift-detail') {
         const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
         t.innerHTML = s.name; p.classList.remove("hidden");
-        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareCleanShiftList()" style="background:#16a34a;border:1px solid #15803d;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📄 Общий список</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Отчёт команде</button></div></div>` + buildHtml(s.items);
+        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareCleanShiftList()" style="background:#16a34a;border:1px solid #15803d;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📄 Общий список</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Отчёт команде</button></div></div>` + buildBudgetCardHtml(s) + buildHtml(s.items);
     } else if (currentTab === 'template-detail') {
         const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
         t.innerHTML = `Пресет: ${tpl.name}`;
