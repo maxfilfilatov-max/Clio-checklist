@@ -2,8 +2,58 @@ let warehouseSearchQuery="",expandedBundles={};
 function toggleItemBundle(id){expandedBundles[id]=!expandedBundles[id];renderAll();}
 function toggleGroupCollapse(key){collapsedGroups[key]=!collapsedGroups[key];saveAll();renderAll();}
 function getOrderedSubcategories(k,l){const r=[...new Set(l.map(x=>x.subcategory))],s=subcatOrder[k]||[],o=s.filter(x=>r.includes(x));r.forEach(x=>{if(!o.includes(x))o.push(x);});subcatOrder[k]=o;return o;}
+function formatRub(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ")+" ₽";}
+function getItemUnitPrice(i){
+    if(i.price!==undefined && i.price!==null && i.price!=="")return parseFloat(i.price)||0;
+    if(i.bundle && i.bundle.trim()!==""){
+        let sum=0;i.bundle.split(',').forEach(part=>{const m=part.match(/(\d+(?:[.,]\d+)?)\s*₽/);if(m)sum+=parseFloat(m[1].replace(',','.'));});
+        if(sum>0)return sum;
+    }
+    return 0;
+}
+function buildBudgetCardHtml(s){
+    let ownDay=0,rentDay=0;
+    s.items.forEach(i=>{
+        const sum=getItemUnitPrice(i)*(i.count||1);
+        if(i.category==='rental')rentDay+=sum;else ownDay+=sum;
+    });
+    if(ownDay<=0 && rentDay<=0)return "";
+    const days=s.days&&s.days>0?s.days:1;
+    const disc=s.discount&&s.discount>0?s.discount:0;
+    const ownTotal=ownDay*days;
+    const rentRaw=rentDay*days;
+    const rentFinal=Math.round(rentRaw*(1-disc/100));
+    const grandTotal=ownTotal+rentFinal;
+    const discBadge=disc>0?`<span style="color:#10b981;font-size:11px;font-weight:700;">-${disc}% (−${formatRub(rentRaw-rentFinal)})</span>`:`<span style="color:#71717a;font-size:11px;">Без скидки</span>`;
+    return `<div style="background:#1c1c1e;border:1px solid #27272a;border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:700;color:#e4e4e7;text-transform:uppercase;letter-spacing:0.5px;">💰 Смета проекта</span>
+            <span style="font-size:12px;color:#a1a1aa;">1 смена: <b style="color:#fff;">${formatRub(ownDay+rentDay)}</b></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;background:#141416;padding:8px 10px;border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:#a1a1aa;">🎥 Своя техника Clio (${days} см.):</span><span style="color:#fff;font-weight:600;">${formatRub(ownTotal)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:#f59e0b;">🛒 Аренда (${days} см.${disc>0?`, −${disc}%`:''}):</span><span style="color:#f59e0b;font-weight:600;">${formatRub(rentFinal)}</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid #27272a;border-bottom:1px solid #27272a;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;color:#a1a1aa;">Смен:</span>
+                <button onclick="changeShiftDays(${s.id},-1)" style="width:28px;height:28px;border-radius:8px;background:#27272a;border:1px solid #3f3f46;color:#fff;font-weight:700;cursor:pointer;">−</button>
+                <span style="font-size:15px;font-weight:700;color:#fff;min-width:20px;text-align:center;">${days}</span>
+                <button onclick="changeShiftDays(${s.id},1)" style="width:28px;height:28px;border-radius:8px;background:#27272a;border:1px solid #3f3f46;color:#fff;font-weight:700;cursor:pointer;">+</button>
+            </div>
+            <button onclick="changeShiftDiscount(${s.id})" style="background:#27272a;border:1px solid #3f3f46;color:#f59e0b;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">🏷️ Скидка рентала: ${disc}%</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;flex-direction:column;">
+                <span style="font-size:12px;color:#a1a1aa;">Итого за ${days} ${days===1?'смену':(days<5?'смены':'смен')}:</span>
+                ${discBadge}
+            </div>
+            <span style="font-size:20px;font-weight:800;color:#10b981;">${formatRub(grandTotal)}</span>
+        </div>
+    </div>`;
+}
 function buildHtml(arr){
-    let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode,isSearch=isInv&&warehouseSearchQuery.trim()!=="";
+    let pk=0,tot=0,html="";const isInv=currentTab==='inventory',isShift=currentTab==='shift-detail',isTpl=currentTab==='template-detail',isEdit=isInv&&isWarehouseEditMode,isSearch=isInv&&warehouseSearchQuery.trim()!=="";
     if(isInv){
         if(isEdit)html+=`<div style="background:#2a1c10;border:1px solid #d97706;color:#f59e0b;padding:12px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;text-align:center;"><div>⚙️ РЕЖИМ НАСТРОЕК БАЗЫ CLIO</div><div style="display:flex;justify-content:center;gap:10px;margin-top:10px;"><button onclick="importClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📥 ИМПОРТ</button><button onclick="exportClioDatabase()" style="background:#27272a;border:1px solid #3f3f46;color:#10b981;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">📤 ЭКСПОРТ</button></div></div>`;
         html+=`<div style="margin:12px 0 16px;box-sizing:border-box;"><input type="text" id="warehouse-search" placeholder="🔍 Поиск по наименованию или описанию..." value="${warehouseSearchQuery}" oninput="handleWarehouseSearch(event)" style="width:100%;padding:12px 16px;background:#1c1c1e;border:1px solid #27272a;border-radius:12px;color:#fff;font-size:15px;outline:none;box-sizing:border-box;-webkit-appearance:none;"></div>`;
@@ -40,13 +90,22 @@ function buildHtml(arr){
                             const safeUrl=hasUrl?(i.url.trim().startsWith('/')?'https://delight.rent'+i.url.trim():(i.url.trim().startsWith('http')?i.url.trim():'https://'+i.url.trim())):"";
                             const uBtn=hasUrl?`<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="background:#2f1f10;border:1px solid #d97706;color:#f59e0b;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">🔗</a>`:"";
                             const bBtn=hasB?`<button onclick="event.stopPropagation();toggleItemBundle(${i.id})" style="background:${isExp?'#27272a':'#18181b'};border:1px solid ${isExp?'#52525b':'#2e2e32'};color:${isExp?'#fff':'#a1a1aa'};border-radius:6px;padding:3px 7px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Состав ${isExp?'▴':'▾'}</button>`:"";
+                            const pr=getItemUnitPrice(i);
+                            let pTag="";
+                            if(isShift){
+                                if(pr===0 && i.origPrice>0)pTag=`<button onclick="event.stopPropagation();editShiftItemPrice(${i.id})" style="font-size:11px;color:#10b981;background:#102a20;border:1px solid #166534;padding:2px 6px;border-radius:5px;font-weight:700;cursor:pointer;white-space:nowrap;">0 ₽ (бонус)</button>`;
+                                else if(pr>0)pTag=`<button onclick="event.stopPropagation();editShiftItemPrice(${i.id})" style="font-size:11px;color:#f59e0b;background:#2b1e10;border:1px solid #4d3319;padding:2px 6px;border-radius:5px;font-weight:600;cursor:pointer;white-space:nowrap;">${formatRub(pr)}</button>`;
+                                else pTag=`<button onclick="event.stopPropagation();editShiftItemPrice(${i.id})" style="font-size:11px;color:#71717a;background:#18181b;border:1px solid #27272a;padding:2px 6px;border-radius:5px;cursor:pointer;white-space:nowrap;">+ ₽</button>`;
+                            }else if(pr>0){
+                                pTag=`<span style="font-size:11px;color:#f59e0b;background:#2b1e10;border:1px solid #4d3319;padding:2px 6px;border-radius:5px;font-weight:600;white-space:nowrap;">${formatRub(pr)}</span>`;
+                            }
                             let rH=(isInv&&i.packed&&maxC>1)?`<span class="count-tag" style="color:#10b981;font-weight:700;">${i.selectedCount||maxC}/${maxC}</span>`:`<span class="count-tag">x${maxC}</span>`;
                             if(isEdit)rH=`<button onclick="event.stopPropagation();editWarehouseItem(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#fbbf24;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;">✏️</button><button onclick="event.stopPropagation();changeItemCategory(${i.id})" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;">Цех ⇄</button><button onclick="event.stopPropagation();deleteGlobalItem(${i.id},event)" style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>`;
-                            else{rH=uBtn+bBtn+rH;if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;}
+                            else{rH=uBtn+bBtn+pTag+rH;if(!isInv)rH+=`<button class="subtle-delete" onclick="deleteGlobalItem(${i.id},event)">✕</button>`;}
                             let cCl=i.packed?'checked':'unchecked';if(isR)cCl=i.packed?'checked-rental':'unchecked-rental';const hC=isTpl||isEdit;
                             const showDesc=(i.brand && i.brand!=="Без описания")?`<p class="item-brand">${i.brand}</p>`:"";
                             const bBox=(hasB&&isExp)?`<div style="background:#141416;border-left:2px solid ${isR?'#d97706':'#3f3f46'};border-radius:0 8px 8px 0;padding:8px 12px;margin:-4px 0 10px ${hC?'2px':'38px'};font-size:12px;color:#a1a1aa;line-height:1.5;">${i.bundle.split(',').map(x=>`<div>• ${x.trim()}</div>`).join('')}</div>`:"";
-                            inner+=`<div class="item-row" style="${hasB&&isExp?'border-bottom:none;padding-bottom:8px;':''}" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${currentTab==='shift-detail'&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>${bBox}`;
+                            inner+=`<div class="item-row" style="${hasB&&isExp?'border-bottom:none;padding-bottom:8px;':''}" onclick="if(!isWarehouseEditMode)toggleItemPacked(${i.id})"><div class="item-left"><div class="checkbox ${hC?'hidden':cCl}">${i.packed?'✓':''}</div><div class="item-info" style="${hC?'padding-left:2px;':''}"><p class="item-name ${isShift&&i.packed?'packed-text':'active-item'}">${i.name}</p>${showDesc}</div></div><div class="item-row-right" style="display:flex;align-items:center;gap:6px;">${rH}</div></div>${bBox}`;
                         });
                     }
                 });
@@ -62,7 +121,7 @@ function buildHtml(arr){
     return html;
 }
 function handleWarehouseSearch(e){warehouseSearchQuery=e.target.value;renderAll();const i=document.getElementById("warehouse-search");if(i)i.focus();}
-function checkoutToShiftFlex(){const ch=warehouseItems.filter(i=>i.packed);if(!ch.length){alert("Вы не выбрали ни одного прибора галочкой!");return;}const n=prompt("Введите название новой смены:");if(!n||!n.trim())return;shiftsList.push({id:Date.now(),name:n.trim(),date:prompt("Дата смены:",new Date().toLocaleDateString('ru-RU'))||"",items:ch.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.selectedCount||1}))});warehouseItems.forEach(i=>{i.packed=false;delete i.selectedCount;});warehouseSearchQuery="";saveAll();switchTab('shifts');}
+function checkoutToShiftFlex(){const ch=warehouseItems.filter(i=>i.packed);if(!ch.length){alert("Вы не выбрали ни одного прибора галочкой!");return;}const n=prompt("Введите название новой смены:");if(!n||!n.trim())return;shiftsList.push({id:Date.now(),name:n.trim(),date:prompt("Дата смены:",new Date().toLocaleDateString('ru-RU'))||"",days:1,discount:0,items:ch.map(i=>({...i,id:Date.now()+Math.random(),packed:false,count:i.selectedCount||1,price:getItemUnitPrice(i),origPrice:getItemUnitPrice(i)}))});warehouseItems.forEach(i=>{i.packed=false;delete i.selectedCount;});warehouseSearchQuery="";saveAll();switchTab('shifts');}
 function buildTemplatesHtml(){let h=templatesList.map(t=>`<div class="card" style="margin-top:12px;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;cursor:pointer;" onclick="currentTab='template-detail';activeTemplateId='${t.id}';renderAll()"><div style="font-size:17px;font-weight:600;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><span>${t.name}</span><span style="color:#71717a;font-size:14px;">▶</span></div><div style="height:1px;background:#27272a;margin-bottom:10px;width:100%;"></div><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:13px;color:#a1a1aa;">${t.desc||"Без описания"}</span><span style="font-size:12px;color:#3b82f6;font-weight:500;">📦 Позиций: ${t.items?t.items.length:0}</span></div><div style="display:flex;align-items:center;gap:12px;"><button class="add-btn" style="width:auto;height:auto;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:#16a34a;border:1px solid #15803d;color:#fff;" onclick="event.stopPropagation();createShiftFromTemplate('${t.id}')">Создать смену</button><button style="background:#2a1414;border:1px solid #3d1b1b;color:#ef4444;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px;border-radius:6px;cursor:pointer;" onclick="event.stopPropagation();if(confirm('Удалить шаблон?')){deleteGlobalItem('${t.id}',event)}">Удалить</button></div></div></div>`).join('');if(!templatesList.length)h=`<div class="empty-text">Шаблонов нет.</div>`;return h+`<button onclick="createTemplateFromWarehouse()" class="big-green-btn">Сделать шаблон из выбранного на складе</button>`;}
 function shareShiftToTelegram(){const s=shiftsList.find(x=>x.id===activeShiftId);if(!s)return;let t=`🎬 СМЕНА: ${s.name.toUpperCase()}\n📅 Дата: ${s.date}\n📊 Сборы: ${s.items.filter(i=>i.packed).length}/${s.items.length}\n\n`;Object.keys(categoriesConfig).forEach(k=>{const inf=categoriesConfig[k],l=s.items.filter(i=>i.category===k);if(!l.length)return;t+=`${inf.icon} ${inf.name.toUpperCase()}:\n`;l.forEach(i=>{t+=`  ${i.packed?"🟢":"🔴"} ${i.name} (${i.brand}) x${i.count}\n`;});t+=`\n`;});t+=`Max&Clio equipment checklist\nУдачной смены!`;if(navigator.share)navigator.share({title:s.name,text:t}).catch(e=>console.log(e));else{navigator.clipboard.writeText(t);alert("Скопировано в буфер! Вставьте в Telegram.");}}
-function shareCleanShiftList(){const s=shiftsList.find(x=>x.id===activeShiftId);if(!s)return;let t=`🎬 СПИСОК ОБОРУДОВАНИЯ: ${s.name.toUpperCase()}\n`;if(s.date)t+=`📅 Дата: ${s.date}\n`;t+=`\n`;Object.keys(categoriesConfig).forEach(k=>{const inf=categoriesConfig[k],l=s.items.filter(i=>i.category===k);if(!l.length)return;t+=`${inf.icon} ${inf.name.toUpperCase()}:\n`;l.forEach(i=>{const desc=(i.brand&&i.brand!=="Без описания")?` (${i.brand})`:"";t+=`  • ${i.name}${desc} — x${i.count}\n`;});t+=`\n`;});t+=`Max&Clio equipment list`;if(navigator.share)navigator.share({title:`Список: ${s.name}`,text:t}).catch(e=>console.log(e));else{navigator.clipboard.writeText(t);alert("Список скопирован в буфер! Вставьте в Telegram.");}}
+function shareCleanShiftList(){const s=shiftsList.find(x=>x.id===activeShiftId);if(!s)return;let t=`🎬 СПИСОК ОБОРУДОВАНИЯ: ${s.name.toUpperCase()}\n`;if(s.date)t+=`📅 Дата: ${s.date}\n`;t+=`\n`;let ownDay=0,rentDay=0;Object.keys(categoriesConfig).forEach(k=>{const inf=categoriesConfig[k],l=s.items.filter(i=>i.category===k);if(!l.length)return;t+=`${inf.icon} ${inf.name.toUpperCase()}:\n`;l.forEach(i=>{const desc=(i.brand&&i.brand!=="Без описания")?` (${i.brand})`:"";const pr=getItemUnitPrice(i);const lineSum=pr*(i.count||1);if(i.category==='rental')rentDay+=lineSum;else ownDay+=lineSum;let pStr="";if(pr===0 && i.origPrice>0)pStr=" [0 ₽ — бонус]";else if(pr>0)pStr=` [${formatRub(lineSum)}]`;t+=`  • ${i.name}${desc} — x${i.count}${pStr}\n`;});t+=`\n`;});if(ownDay>0 || rentDay>0){const days=s.days&&s.days>0?s.days:1;const disc=s.discount&&s.discount>0?s.discount:0;const ownTotal=ownDay*days;const rentFinal=Math.round(rentDay*days*(1-disc/100));t+=`💰 СМЕТА ПРОЕКТА (${days} ${days===1?'смена':(days<5?'смены':'смен')}):\n`;if(ownTotal>0)t+=`  • Своя техника Clio: ${formatRub(ownTotal)}\n`;if(rentDay>0)t+=`  • Аренда${disc>0?` (скидка ${disc}%)`:''}: ${formatRub(rentFinal)}\n`;t+=`  • ИТОГО: ${formatRub(ownTotal+rentFinal)}\n\n`;}t+=`Max&Clio equipment list`;if(navigator.share)navigator.share({title:`Список: ${s.name}`,text:t}).catch(e=>console.log(e));else{navigator.clipboard.writeText(t);alert("Список скопирован в буфер! Вставьте в Telegram.");}}
