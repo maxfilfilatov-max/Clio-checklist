@@ -9,7 +9,7 @@ const categoriesConfig = {
 
 const defaultClioWarehouse = [
 {"id":1,"name":"Panasonic GH6","brand":"Мощь Микры!","count":1,"packed":false,"category":"camera","subcategory":"Камеры","section":"Разное","price":2185},
-{"id":2,"name":"DZO Vespid Prime","brand":"Комплект оптики","count":8,"packed":false,"category":"camera","subcategory":"Оптика","section":"Объективы","price":2985,"bundle":"16mm T2.8 — 2985 ₽, 21mm T2.1 — 2985 ₽, 25mm T2.1 — 2985 ₽, 35mm T2.1 — 2985 ₽, 50mm T2.1 — 2985 ₽, 75mm T2.1 — 2985 ₽, 100mm T2.1 — 2985 ₽, 125mm T2.1 — 2985 ₽"},
+{"id":2,"name":"DZO Vespid Prime","brand":"Комплект оптики","count":8,"packed":false,"category":"camera","subcategory":"Оптика","section":"Объективы","price":2985,"bundle":"16mm T2.8 — 2985 ₽, 25mm T2.1 — 2985 ₽, 35mm T2.1 — 2985 ₽, 50mm T2.1 — 2985 ₽, 75mm T2.1 — 2985 ₽, 90mm Macro T2.8 — 2985 ₽, 100mm T2.1 — 2985 ₽, 125mm T2.1 — 2985 ₽"},
 {"id":3,"name":"Адаптер Metabones PL-MFT","brand":"Устанавливаем кинооптику на Микуру!","count":1,"packed":false,"category":"camera","subcategory":"Оптика","section":"Оптические адаптеры","price":590},
 {"id":4,"name":"Адаптер DZO PL-L","brand":"Проверяем наличие!","count":1,"packed":false,"category":"camera","subcategory":"Оптика","section":"Оптические адаптеры","price":590},
 {"id":5,"name":"Адаптер DZO PL-E","brand":"Устанавливаем кинооптику на Sony","count":1,"packed":false,"category":"camera","subcategory":"Оптика","section":"Оптические адаптеры","price":590},
@@ -136,7 +136,7 @@ const defaultClioWarehouse = [
 {"id":132,"name":"SmallRig NP-F970","brand":"Без описания","count":2,"packed":false,"category":"rental","subcategory":"Питание","section":"NP-F аккумуляторы","price":740,"url":"/rent/akkumulyatory-dlya-videotekhniki-sony/akkumulyator_smallrig_np_f970/"}
 ];
 
-const CLIO_DB_VER = "2026_11_19_v11";
+const CLIO_DB_VER = "2026_11_19_v12";
 let templatesList = localStorage.getItem('whTemplates') ? JSON.parse(localStorage.getItem('whTemplates')) : [];
 let warehouseItems = [];
 if (localStorage.getItem('clioDbVer') === CLIO_DB_VER && localStorage.getItem('whItems')) {
