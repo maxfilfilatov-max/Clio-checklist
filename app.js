@@ -1,13 +1,54 @@
 let currentTab = 'shifts', activeShiftId = null, activeTemplateId = null, isWarehouseEditMode = false;
 
 function switchTab(t) {
-    currentTab = t; activeShiftId = null; activeTemplateId = null; isWarehouseEditMode = false;
+    currentTab = t; activeShiftId = null; activeTemplateId = null; isWarehouseEditMode = false; shiftPickerOpen = false;
     document.querySelectorAll('nav .nav-item').forEach(b => b.classList.remove('active'));
     document.getElementById('nav-' + t).classList.add('active');
     renderAll();
 }
 
 function toggleWarehouseEdit() { isWarehouseEditMode = !isWarehouseEditMode; renderAll(); }
+
+function openShiftPicker() { shiftPickerOpen = true; shiftPickerQuery = ""; renderAll(); }
+function closeShiftPicker() { shiftPickerOpen = false; shiftPickerQuery = ""; renderAll(); }
+
+function addWarehouseItemToCurrentShift(whId) {
+    const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
+    const base = warehouseItems.find(w => w.id === whId); if (!base) return;
+    const max = base.count > 0 ? base.count : 1;
+    let qty = 1;
+    if (max > 1) {
+        const ans = prompt(`Сколько добавить "${base.name}" в смену? (На складе: ${max} шт.)`, "1");
+        if (ans === null) return;
+        qty = parseInt(ans);
+        if (isNaN(qty) || qty < 1) { alert("Укажите корректное количество"); return; }
+    }
+    const basePr = getItemUnitPrice(base);
+    const existing = s.items.find(i => i.name === base.name && i.category === base.category);
+    if (existing) {
+        existing.count += qty;
+    } else {
+        s.items.push({ ...base, id: Date.now() + Math.random(), packed: false, count: qty, price: basePr, origPrice: basePr });
+    }
+    saveAll(); renderAll();
+}
+
+function addCustomItemToCurrentShift() {
+    const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
+    const cats = Object.keys(categoriesConfig), menu = cats.map((k, i) => `${i + 1}. ${categoriesConfig[k].name}`).join('\n');
+    const num = parseInt(prompt(`В какой цех добавить позицию (введите цифру):\n\n${menu}`, "6"));
+    if (!(num >= 1 && num <= cats.length)) return;
+    const categoryKey = cats[num - 1];
+    const name = prompt("Наименование:"); if (!name || !name.trim()) return;
+    const brand = prompt("Описание:") || "Без описания";
+    const count = parseInt(prompt("Количество (штук):", "1")) || 1;
+    const subcat = prompt("Категория:", "Разное").trim() || "Разное";
+    const section = prompt("Подкатегория:", "Разное").trim() || "Разное";
+    const price = parseFloat((prompt("Цена за 1 смену в ₽ (0 — если без цены):", "0") || "0").replace(',', '.')) || 0;
+    s.items.push({ id: Date.now() + Math.random(), name: name.trim(), brand: brand, count: count, packed: false, category: categoryKey, subcategory: subcat, section: section, bundle: "", url: "", price: price, origPrice: price });
+    shiftPickerOpen = false;
+    saveAll(); renderAll();
+}
 
 function changeShiftDays(shiftId, delta) {
     const s = shiftsList.find(x => x.id === shiftId); if (!s) return;
@@ -17,7 +58,7 @@ function changeShiftDays(shiftId, delta) {
 
 function changeShiftDiscount(shiftId) {
     const s = shiftsList.find(x => x.id === shiftId); if (!s) return;
-    const ans = prompt("Укажите скидку рентала в процентах (например: 10 или 15):", String(s.discount || 0));
+    const ans = prompt("Укажите размер скидки в процентах (например: 10 или 30):", String(s.discount || 0));
     if (ans === null) return;
     const val = parseFloat(ans.replace(',', '.'));
     s.discount = (!isNaN(val) && val >= 0 && val <= 100) ? val : 0;
@@ -48,7 +89,6 @@ function moveSubcategory(catKey, subName, dir) {
     [order[idx], order[tIdx]] = [order[tIdx], order[idx]];
     subcatOrder[catKey] = order; saveAll(); renderAll();
 }
-
 function editWarehouseItem(id) {
     const item = warehouseItems.find(x => x.id === id); if (!item) return;
     const nName = prompt("Наименование:", item.name); if (nName === null) return;
@@ -100,6 +140,7 @@ function createShiftFromTemplate(tplId) {
     shiftsList.push({ id: Date.now(), name: name.trim(), date: prompt("Дата смены:", new Date().toLocaleDateString('ru-RU')) || "", days: 1, discount: 0, items: tpl.items.map(i => { const base = warehouseItems.find(w => w.name === i.name && w.category === i.category); const pr = base ? getItemUnitPrice(base) : getItemUnitPrice(i); return { ...i, id: Date.now() + Math.random(), packed: false, count: i.count > 0 ? i.count : 1, price: pr, origPrice: pr }; }) });
     saveAll(); switchTab('shifts');
 }
+
 function saveShiftAsTemplate(shiftId, e) {
     if (e) e.stopPropagation();
     const s = shiftsList.find(x => x.id === shiftId); if (!s) return;
@@ -150,7 +191,6 @@ function deleteGlobalItem(id, e) {
     else if (currentTab === 'template-detail') { const t = templatesList.find(x => x.id === activeTemplateId), it = t?.items.find(x => x.id === id); if (!it || !confirm(`Удалить "${it.name}" из шаблона?`)) return; if (t) t.items = t.items.filter(x => x.id !== id); }
     saveAll(); renderAll();
 }
-
 function exportShiftCode() {
     const s = shiftsList.find(x => x.id === activeShiftId); if (!s) return;
     const refs = [], custom = [];
@@ -252,7 +292,7 @@ function renderAll() {
     } else if (currentTab === 'shift-detail') {
         const s = shiftsList.find(x => x.id === activeShiftId); if (!s) { switchTab('shifts'); return; }
         t.innerHTML = s.name; p.classList.remove("hidden");
-        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareCleanShiftList()" style="background:#16a34a;border:1px solid #15803d;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📄 Общий список</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Отчёт команде</button></div></div>` + buildBudgetCardHtml(s) + buildHtml(s.items);
+        c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;"><button class="back-btn" onclick="switchTab('shifts')" style="background:#27272a;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">❮ Назад</button><div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="openShiftPicker()" style="background:#27272a;border:1px solid #16a34a;color:#10b981;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;">+ Добавить со склада</button><button onclick="exportShiftCode()" style="background:#27272a;border:1px solid #3f3f46;color:#60a5fa;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📤 Поделиться сменой</button><button onclick="shareCleanShiftList()" style="background:#16a34a;border:1px solid #15803d;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">📄 Общий список</button><button onclick="shareShiftToTelegram()" style="background:#1d4ed8;border:1px solid #1e40af;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">🚀 Отчёт команде</button></div></div>` + buildBudgetCardHtml(s) + buildHtml(s.items) + buildShiftPickerModal();
     } else if (currentTab === 'template-detail') {
         const tpl = templatesList.find(x => x.id === activeTemplateId); if (!tpl) { switchTab('templates'); return; }
         t.innerHTML = `Пресет: ${tpl.name}`;
